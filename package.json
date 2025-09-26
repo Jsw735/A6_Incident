@@ -1,0 +1,25 @@
+{
+  "name": "a6-incident-reporting",
+  "version": "1.0.0",
+  "description": "A6 Incident Reporting System with project folder loading capabilities",
+  "main": "app.py",
+  "scripts": {
+    "start": "python app.py",
+    "test": "python -m pytest tests/",
+    "load-project": "python -m src.project_loader"
+  },
+  "keywords": [
+    "incident-reporting",
+    "project-management",
+    "a6"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "python": ">=3.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jsw735/A6_Incident"
+  }
+}

@@ -1,0 +1,23 @@
+application:
+  name: Sample Web Application
+  version: 1.2.3
+  
+database:
+  type: mongodb
+  host: localhost
+  port: 27017
+  name: sample_db
+  
+security:
+  jwt_secret: your-jwt-secret-here
+  session_timeout: 3600
+  
+logging:
+  level: info
+  file: logs/application.log
+  
+features:
+  - user_authentication
+  - data_analytics
+  - file_upload
+  - real_time_notifications

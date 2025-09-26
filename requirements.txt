@@ -1,0 +1,25 @@
+# A6 Incident Reporting System Requirements
+# Core dependencies for incident reporting and project loading
+
+# Optional web framework (install if needed)
+# flask>=2.3.0
+# flask-sqlalchemy>=3.0.0
+
+# Database and data handling (built-in)
+# sqlite3 is included with Python
+# pandas>=1.5.0
+# numpy>=1.24.0
+
+# File handling and project loading (mostly built-in)
+pathlib2>=2.3.0
+configparser>=5.3.0
+PyYAML>=6.0
+
+# Date and time handling (built-in)
+# python-dateutil>=2.8.0
+
+# Logging (built-in)
+# logging is included with Python
+
+# Note: This system is designed to work with minimal dependencies
+# Install additional packages as needed for your environment

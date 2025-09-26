@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A6 Incident Reporting System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 10px 10px 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #5a67d8;
+        }
+        .btn-secondary {
+            background: #4a5568;
+        }
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .feature {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .feature h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .status-ready {
+            background-color: #10b981;
+            color: white;
+        }
+        ul {
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>A6 Incident Reporting System</h1>
+        <p>Load existing projects and manage incident reports efficiently</p>
+        <span class="status status-ready">READY</span>
+    </div>
+
+    <div class="card">
+        <h2>Welcome to A6 Incident Reporting</h2>
+        <p>This system allows you to load existing project folders and manage incident reports. 
+           Get started by loading your first project or browse existing incidents.</p>
+        
+        <div style="margin-top: 20px;">
+            <a href="/load-project" class="btn">Load Project Folder</a>
+            <a href="/api/projects" class="btn btn-secondary">View Loaded Projects (API)</a>
+            <a href="/api/incidents" class="btn btn-secondary">View Incidents (API)</a>
+        </div>
+    </div>
+
+    <div class="feature-grid">
+        <div class="feature">
+            <h3>Project Loading</h3>
+            <p>Load existing project folders with support for:</p>
+            <ul>
+                <li>JSON configuration files</li>
+                <li>YAML configuration files</li>
+                <li>CSV data files</li>
+                <li>Text and log files</li>
+                <li>Automatic file analysis</li>
+            </ul>
+        </div>
+
+        <div class="feature">
+            <h3>Incident Management</h3>
+            <p>Comprehensive incident tracking with:</p>
+            <ul>
+                <li>Incident creation and status tracking</li>
+                <li>Severity classification</li>
+                <li>Project linking</li>
+                <li>Timeline tracking</li>
+                <li>Metadata support</li>
+            </ul>
+        </div>
+
+        <div class="feature">
+            <h3>File Analysis</h3>
+            <p>Automatic analysis of project files:</p>
+            <ul>
+                <li>File structure analysis</li>
+                <li>Content type detection</li>
+                <li>Data structure mapping</li>
+                <li>Error reporting</li>
+                <li>Processing statistics</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

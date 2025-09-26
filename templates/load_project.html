@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Project - A6 Incident Reporting</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #5a67d8;
+        }
+        .btn-secondary {
+            background: #4a5568;
+        }
+        .btn-secondary:hover {
+            background: #2d3748;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .result.success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .help-text {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Load Project Folder</h1>
+        <p>Import an existing project folder into the incident reporting system</p>
+    </div>
+
+    <div class="card">
+        <form id="loadProjectForm">
+            <div class="form-group">
+                <label for="project_path">Project Folder Path:</label>
+                <input type="text" id="project_path" name="project_path" 
+                       placeholder="/path/to/your/project/folder" required>
+                <div class="help-text">
+                    Enter the full path to the project folder you want to load. 
+                    The system will copy and analyze all files in the folder.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn">Load Project</button>
+                <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </form>
+
+        <div id="result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="card" style="margin-top: 20px;">
+        <h3>Supported File Types</h3>
+        <ul>
+            <li><strong>JSON files</strong> - Configuration files, data files</li>
+            <li><strong>YAML files</strong> - Configuration files, metadata</li>
+            <li><strong>CSV files</strong> - Data files, spreadsheets</li>
+            <li><strong>Text files</strong> - Documentation, logs, README files</li>
+        </ul>
+        
+        <h3>What Happens During Loading?</h3>
+        <ol>
+            <li>The project folder is copied to our projects directory</li>
+            <li>All files are analyzed for type and structure</li>
+            <li>Metadata is extracted and stored</li>
+            <li>A project entry is created for incident tracking</li>
+            <li>You can then create incidents linked to specific files</li>
+        </ol>
+    </div>
+
+    <script>
+        document.getElementById('loadProjectForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const projectPath = document.getElementById('project_path').value;
+            const resultDiv = document.getElementById('result');
+            
+            // Show loading state
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            resultDiv.innerHTML = 'Loading project... Please wait.';
+            
+            try {
+                const response = await fetch('/load-project', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `project_path=${encodeURIComponent(projectPath)}`
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h4>✓ Success!</h4>
+                        <p>${result.message}</p>
+                        <p><strong>Project Name:</strong> ${result.details.project_name}</p>
+                        <p><strong>Load ID:</strong> ${result.details.load_id}</p>
+                        <p><strong>Files Processed:</strong> ${result.details.total_files}</p>
+                        ${result.details.errors.length > 0 ? `<p><strong>Errors:</strong> ${result.details.errors.length}</p>` : ''}
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h4>✗ Error</h4>
+                        <p>${result.message}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h4>✗ Error</h4>
+                    <p>Failed to load project: ${error.message}</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>
