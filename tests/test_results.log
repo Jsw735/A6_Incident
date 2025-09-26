@@ -1,0 +1,203 @@
+2025-09-24 10:56:49,707 - tests.test_integration - INFO - Successfully imported all required modules
+2025-09-24 10:56:49,743 - data_processing.data_cleaner - INFO - Starting enhanced data cleaning for 1 records
+2025-09-24 10:56:49,743 - data_processing.data_cleaner - INFO - Original columns: ['Number', 'sys_created_on', 'resolved_at', 'Urgency']
+2025-09-24 10:56:49,743 - data_processing.data_cleaner - INFO - === COLUMN MAPPING ANALYSIS ===
+2025-09-24 10:56:49,743 - data_processing.data_cleaner - INFO - Available columns: ['Number', 'sys_created_on', 'resolved_at', 'Urgency']
+2025-09-24 10:56:49,767 - data_processing.data_cleaner - INFO - Successfully mapped 4 columns
+2025-09-24 10:56:49,767 - data_processing.data_cleaner - INFO - === FINAL COLUMN STATUS ===
+2025-09-24 10:56:49,786 - data_processing.data_cleaner - INFO - Processing date column 'created_date' with 1 non-null values
+2025-09-24 10:56:49,790 - data_processing.data_cleaner - INFO - Processing date column 'resolved_date' with 1 non-null values
+2025-09-24 10:56:49,798 - data_processing.data_cleaner - INFO - Cleaned 2 text fields
+2025-09-24 10:56:49,799 - data_processing.data_cleaner - INFO - Canonical column Created created from created_date
+2025-09-24 10:56:49,800 - data_processing.data_cleaner - INFO - Canonical column Resolved created from resolved_date
+2025-09-24 10:56:49,800 - data_processing.data_cleaner - INFO - Canonical column Priority created from priority
+2025-09-24 10:56:49,801 - data_processing.data_cleaner - INFO - Enhanced data cleaning completed: 1 records processed
+2025-09-24 10:56:49,801 - data_processing.data_cleaner - INFO - Final columns: ['number', 'created_date', 'resolved_date', 'priority', 'Created', 'Resolved', 'Priority']
+2025-09-24 10:56:49,801 - data_processing.data_cleaner - INFO - === DATA CLEANING SUMMARY ===
+2025-09-24 10:56:49,801 - data_processing.data_cleaner - INFO - original_records: 1
+2025-09-24 10:56:49,801 - data_processing.data_cleaner - INFO - original_columns: 4
+2025-09-24 10:56:49,801 - data_processing.data_cleaner - INFO - columns_mapped: 4
+2025-09-24 10:56:49,801 - data_processing.data_cleaner - INFO - duplicates_removed: 0
+2025-09-24 10:56:49,801 - data_processing.data_cleaner - INFO - missing_values_handled: 0
+2025-09-24 10:56:49,801 - data_processing.data_cleaner - INFO - text_standardized: 2
+2025-09-24 10:56:49,801 - data_processing.data_cleaner - INFO - dates_standardized: 2
+2025-09-24 10:56:49,801 - data_processing.data_cleaner - INFO - final_records: 1
+2025-09-24 10:56:49,802 - data_processing.data_cleaner - INFO - final_columns: 4
+2025-09-24 10:56:49,802 - data_processing.data_cleaner - INFO - === END CLEANING SUMMARY ===
+2025-09-24 10:56:50,050 - analysis.metrics_calculator - INFO - Priority breakdown calculated: {'High': 0, 'Medium': 0, 'Low': 3}
+2025-09-24 11:02:58,433 - tests.test_integration - INFO - Successfully imported all required modules
+2025-09-24 11:02:58,451 - config.settings - INFO - Configuration loaded from C:\Users\jsw73\Downloads\incident_reporting_system\config\executive_config.ini
+2025-09-24 11:02:58,453 - data_processing.data_cleaner - INFO - Starting enhanced data cleaning for 1 records
+2025-09-24 11:02:58,453 - data_processing.data_cleaner - INFO - Original columns: ['Number', 'sys_created_on', 'resolved_at', 'Urgency']
+2025-09-24 11:02:58,454 - data_processing.data_cleaner - INFO - === COLUMN MAPPING ANALYSIS ===
+2025-09-24 11:02:58,454 - data_processing.data_cleaner - INFO - Available columns: ['Number', 'sys_created_on', 'resolved_at', 'Urgency']
+2025-09-24 11:02:58,454 - data_processing.data_cleaner - INFO - MAPPED: 'sys_created_on' -> 'created_date'
+2025-09-24 11:02:58,454 - data_processing.data_cleaner - INFO - MAPPED: 'resolved_at' -> 'resolved_date'
+2025-09-24 11:02:58,454 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'assignment_group' in ['Assignment Group', 'Assigned To', 'Team', 'Support Group', 'assigned_group', 'support_team', 'resolver_group', 'assignment_team', 'responsible_team']
+2025-09-24 11:02:58,454 - data_processing.data_cleaner - INFO - MAPPED: 'Urgency' -> 'priority'
+2025-09-24 11:02:58,454 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'status' in ['State', 'Status', 'Incident State', 'Current State', 'incident_status', 'current_status', 'state_name']
+2025-09-24 11:02:58,454 - data_processing.data_cleaner - INFO - MAPPED: 'Number' -> 'number'
+2025-09-24 11:02:58,454 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'short_description' in ['Short Description', 'Summary', 'Title', 'Subject', 'short_desc', 'incident_summary', 'description_short']
+2025-09-24 11:02:58,459 - data_processing.data_cleaner - INFO - Successfully mapped 4 columns
+2025-09-24 11:02:58,460 - data_processing.data_cleaner - INFO - === FINAL COLUMN STATUS ===
+2025-09-24 11:02:58,460 - data_processing.data_cleaner - INFO - created_date: AVAILABLE
+2025-09-24 11:02:58,460 - data_processing.data_cleaner - INFO - resolved_date: AVAILABLE
+2025-09-24 11:02:58,461 - data_processing.data_cleaner - WARNING - assignment_group: MISSING
+2025-09-24 11:02:58,462 - data_processing.data_cleaner - INFO - priority: AVAILABLE
+2025-09-24 11:02:58,462 - data_processing.data_cleaner - WARNING - status: MISSING
+2025-09-24 11:02:58,462 - data_processing.data_cleaner - INFO - number: AVAILABLE
+2025-09-24 11:02:58,462 - data_processing.data_cleaner - WARNING - short_description: MISSING
+2025-09-24 11:02:58,468 - data_processing.data_cleaner - INFO - Processing date column 'created_date' with 1 non-null values
+2025-09-24 11:02:58,471 - data_processing.data_cleaner - INFO - Standardized 'created_date': 1 valid dates
+2025-09-24 11:02:58,472 - data_processing.data_cleaner - INFO - Processing date column 'resolved_date' with 1 non-null values
+2025-09-24 11:02:58,473 - data_processing.data_cleaner - INFO - Standardized 'resolved_date': 1 valid dates
+2025-09-24 11:02:58,475 - data_processing.data_cleaner - INFO - Cleaned 2 text fields
+2025-09-24 11:02:58,476 - data_processing.data_cleaner - INFO - Canonical column Created created from created_date
+2025-09-24 11:02:58,476 - data_processing.data_cleaner - INFO - Canonical column Resolved created from resolved_date
+2025-09-24 11:02:58,477 - data_processing.data_cleaner - INFO - Canonical column Priority created from priority
+2025-09-24 11:02:58,477 - data_processing.data_cleaner - INFO - Enhanced data cleaning completed: 1 records processed
+2025-09-24 11:02:58,477 - data_processing.data_cleaner - INFO - Final columns: ['number', 'created_date', 'resolved_date', 'priority', 'Created', 'Resolved', 'Priority']
+2025-09-24 11:02:58,477 - data_processing.data_cleaner - INFO - === DATA CLEANING SUMMARY ===
+2025-09-24 11:02:58,477 - data_processing.data_cleaner - INFO - original_records: 1
+2025-09-24 11:02:58,477 - data_processing.data_cleaner - INFO - original_columns: 4
+2025-09-24 11:02:58,477 - data_processing.data_cleaner - INFO - columns_mapped: 4
+2025-09-24 11:02:58,478 - data_processing.data_cleaner - INFO - duplicates_removed: 0
+2025-09-24 11:02:58,478 - data_processing.data_cleaner - INFO - missing_values_handled: 0
+2025-09-24 11:02:58,478 - data_processing.data_cleaner - INFO - text_standardized: 2
+2025-09-24 11:02:58,478 - data_processing.data_cleaner - INFO - dates_standardized: 2
+2025-09-24 11:02:58,478 - data_processing.data_cleaner - INFO - final_records: 1
+2025-09-24 11:02:58,479 - data_processing.data_cleaner - INFO - final_columns: 4
+2025-09-24 11:02:58,479 - data_processing.data_cleaner - INFO - === END CLEANING SUMMARY ===
+2025-09-24 11:02:58,543 - analysis.metrics_calculator - INFO - Priority breakdown calculated: {'High': 0, 'Medium': 0, 'Low': 3}
+2025-09-24 11:03:09,734 - tests.test_integration - INFO - Successfully imported all required modules
+2025-09-24 11:03:09,742 - config.settings - INFO - Configuration loaded from C:\Users\jsw73\Downloads\incident_reporting_system\config\executive_config.ini
+2025-09-24 11:03:09,743 - data_processing.data_cleaner - INFO - Starting enhanced data cleaning for 1 records
+2025-09-24 11:03:09,743 - data_processing.data_cleaner - INFO - Original columns: ['Number', 'sys_created_on', 'resolved_at', 'Urgency']
+2025-09-24 11:03:09,744 - data_processing.data_cleaner - INFO - === COLUMN MAPPING ANALYSIS ===
+2025-09-24 11:03:09,744 - data_processing.data_cleaner - INFO - Available columns: ['Number', 'sys_created_on', 'resolved_at', 'Urgency']
+2025-09-24 11:03:09,744 - data_processing.data_cleaner - INFO - MAPPED: 'sys_created_on' -> 'created_date'
+2025-09-24 11:03:09,744 - data_processing.data_cleaner - INFO - MAPPED: 'resolved_at' -> 'resolved_date'
+2025-09-24 11:03:09,744 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'assignment_group' in ['Assignment Group', 'Assigned To', 'Team', 'Support Group', 'assigned_group', 'support_team', 'resolver_group', 'assignment_team', 'responsible_team']
+2025-09-24 11:03:09,745 - data_processing.data_cleaner - INFO - MAPPED: 'Urgency' -> 'priority'
+2025-09-24 11:03:09,745 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'status' in ['State', 'Status', 'Incident State', 'Current State', 'incident_status', 'current_status', 'state_name']
+2025-09-24 11:03:09,745 - data_processing.data_cleaner - INFO - MAPPED: 'Number' -> 'number'
+2025-09-24 11:03:09,745 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'short_description' in ['Short Description', 'Summary', 'Title', 'Subject', 'short_desc', 'incident_summary', 'description_short']
+2025-09-24 11:03:09,746 - data_processing.data_cleaner - INFO - Successfully mapped 4 columns
+2025-09-24 11:03:09,746 - data_processing.data_cleaner - INFO - === FINAL COLUMN STATUS ===
+2025-09-24 11:03:09,747 - data_processing.data_cleaner - INFO - created_date: AVAILABLE
+2025-09-24 11:03:09,747 - data_processing.data_cleaner - INFO - resolved_date: AVAILABLE
+2025-09-24 11:03:09,747 - data_processing.data_cleaner - WARNING - assignment_group: MISSING
+2025-09-24 11:03:09,747 - data_processing.data_cleaner - INFO - priority: AVAILABLE
+2025-09-24 11:03:09,747 - data_processing.data_cleaner - WARNING - status: MISSING
+2025-09-24 11:03:09,747 - data_processing.data_cleaner - INFO - number: AVAILABLE
+2025-09-24 11:03:09,747 - data_processing.data_cleaner - WARNING - short_description: MISSING
+2025-09-24 11:03:09,749 - data_processing.data_cleaner - INFO - Processing date column 'created_date' with 1 non-null values
+2025-09-24 11:03:09,751 - data_processing.data_cleaner - INFO - Standardized 'created_date': 1 valid dates
+2025-09-24 11:03:09,752 - data_processing.data_cleaner - INFO - Processing date column 'resolved_date' with 1 non-null values
+2025-09-24 11:03:09,752 - data_processing.data_cleaner - INFO - Standardized 'resolved_date': 1 valid dates
+2025-09-24 11:03:09,754 - data_processing.data_cleaner - INFO - Cleaned 2 text fields
+2025-09-24 11:03:09,755 - data_processing.data_cleaner - INFO - Canonical column Created created from created_date
+2025-09-24 11:03:09,755 - data_processing.data_cleaner - INFO - Canonical column Resolved created from resolved_date
+2025-09-24 11:03:09,756 - data_processing.data_cleaner - INFO - Canonical column Priority created from priority
+2025-09-24 11:03:09,756 - data_processing.data_cleaner - INFO - Enhanced data cleaning completed: 1 records processed
+2025-09-24 11:03:09,756 - data_processing.data_cleaner - INFO - Final columns: ['number', 'created_date', 'resolved_date', 'priority', 'Created', 'Resolved', 'Priority']
+2025-09-24 11:03:09,756 - data_processing.data_cleaner - INFO - === DATA CLEANING SUMMARY ===
+2025-09-24 11:03:09,756 - data_processing.data_cleaner - INFO - original_records: 1
+2025-09-24 11:03:09,756 - data_processing.data_cleaner - INFO - original_columns: 4
+2025-09-24 11:03:09,757 - data_processing.data_cleaner - INFO - columns_mapped: 4
+2025-09-24 11:03:09,757 - data_processing.data_cleaner - INFO - duplicates_removed: 0
+2025-09-24 11:03:09,757 - data_processing.data_cleaner - INFO - missing_values_handled: 0
+2025-09-24 11:03:09,757 - data_processing.data_cleaner - INFO - text_standardized: 2
+2025-09-24 11:03:09,757 - data_processing.data_cleaner - INFO - dates_standardized: 2
+2025-09-24 11:03:09,757 - data_processing.data_cleaner - INFO - final_records: 1
+2025-09-24 11:03:09,757 - data_processing.data_cleaner - INFO - final_columns: 4
+2025-09-24 11:03:09,757 - data_processing.data_cleaner - INFO - === END CLEANING SUMMARY ===
+2025-09-24 11:03:10,111 - analysis.metrics_calculator - INFO - Priority breakdown calculated: {'High': 0, 'Medium': 0, 'Low': 3}
+2025-09-24 11:18:28,608 - tests.test_integration - INFO - Successfully imported all required modules
+2025-09-24 11:18:28,620 - config.settings - INFO - Configuration loaded from C:\Users\jsw73\Downloads\incident_reporting_system\config\executive_config.ini
+2025-09-24 11:18:28,622 - data_processing.data_cleaner - INFO - Starting enhanced data cleaning for 1 records
+2025-09-24 11:18:28,622 - data_processing.data_cleaner - INFO - Original columns: ['Number', 'sys_created_on', 'resolved_at', 'Urgency']
+2025-09-24 11:18:28,623 - data_processing.data_cleaner - INFO - === COLUMN MAPPING ANALYSIS ===
+2025-09-24 11:18:28,623 - data_processing.data_cleaner - INFO - Available columns: ['Number', 'sys_created_on', 'resolved_at', 'Urgency']
+2025-09-24 11:18:28,624 - data_processing.data_cleaner - INFO - MAPPED: 'sys_created_on' -> 'created_date'
+2025-09-24 11:18:28,624 - data_processing.data_cleaner - INFO - MAPPED: 'resolved_at' -> 'resolved_date'
+2025-09-24 11:18:28,624 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'assignment_group' in ['Assignment Group', 'Assigned To', 'Team', 'Support Group', 'assigned_group', 'support_team', 'resolver_group', 'assignment_team', 'responsible_team']
+2025-09-24 11:18:28,624 - data_processing.data_cleaner - INFO - MAPPED: 'Urgency' -> 'priority'
+2025-09-24 11:18:28,624 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'status' in ['State', 'Status', 'Incident State', 'Current State', 'incident_status', 'current_status', 'state_name']
+2025-09-24 11:18:28,624 - data_processing.data_cleaner - INFO - MAPPED: 'Number' -> 'number'
+2025-09-24 11:18:28,624 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'short_description' in ['Short Description', 'Summary', 'Title', 'Subject', 'short_desc', 'incident_summary', 'description_short']
+2025-09-24 11:18:28,625 - data_processing.data_cleaner - INFO - Successfully mapped 4 columns
+2025-09-24 11:18:28,625 - data_processing.data_cleaner - INFO - === FINAL COLUMN STATUS ===
+2025-09-24 11:18:28,626 - data_processing.data_cleaner - INFO - created_date: AVAILABLE
+2025-09-24 11:18:28,626 - data_processing.data_cleaner - INFO - resolved_date: AVAILABLE
+2025-09-24 11:18:28,626 - data_processing.data_cleaner - WARNING - assignment_group: MISSING
+2025-09-24 11:18:28,626 - data_processing.data_cleaner - INFO - priority: AVAILABLE
+2025-09-24 11:18:28,626 - data_processing.data_cleaner - WARNING - status: MISSING
+2025-09-24 11:18:28,626 - data_processing.data_cleaner - INFO - number: AVAILABLE
+2025-09-24 11:18:28,626 - data_processing.data_cleaner - WARNING - short_description: MISSING
+2025-09-24 11:18:28,628 - data_processing.data_cleaner - INFO - Processing date column 'created_date' with 1 non-null values
+2025-09-24 11:18:28,630 - data_processing.data_cleaner - INFO - Standardized 'created_date': 1 valid dates
+2025-09-24 11:18:28,631 - data_processing.data_cleaner - INFO - Processing date column 'resolved_date' with 1 non-null values
+2025-09-24 11:18:28,632 - data_processing.data_cleaner - INFO - Standardized 'resolved_date': 1 valid dates
+2025-09-24 11:18:28,634 - data_processing.data_cleaner - INFO - Cleaned 2 text fields
+2025-09-24 11:18:28,635 - data_processing.data_cleaner - INFO - Canonical column Created created from created_date
+2025-09-24 11:18:28,636 - data_processing.data_cleaner - INFO - Canonical column Resolved created from resolved_date
+2025-09-24 11:18:28,637 - data_processing.data_cleaner - INFO - Canonical column Priority created from priority
+2025-09-24 11:18:28,638 - data_processing.data_cleaner - INFO - Enhanced data cleaning completed: 1 records processed
+2025-09-24 11:18:28,638 - data_processing.data_cleaner - INFO - Final columns: ['number', 'created_date', 'resolved_date', 'priority', 'Created', 'Resolved', 'Priority']
+2025-09-24 11:18:28,638 - data_processing.data_cleaner - INFO - === DATA CLEANING SUMMARY ===
+2025-09-24 11:18:28,638 - data_processing.data_cleaner - INFO - original_records: 1
+2025-09-24 11:18:28,638 - data_processing.data_cleaner - INFO - original_columns: 4
+2025-09-24 11:18:28,638 - data_processing.data_cleaner - INFO - columns_mapped: 4
+2025-09-24 11:18:28,639 - data_processing.data_cleaner - INFO - duplicates_removed: 0
+2025-09-24 11:18:28,639 - data_processing.data_cleaner - INFO - missing_values_handled: 0
+2025-09-24 11:18:28,639 - data_processing.data_cleaner - INFO - text_standardized: 2
+2025-09-24 11:18:28,639 - data_processing.data_cleaner - INFO - dates_standardized: 2
+2025-09-24 11:18:28,639 - data_processing.data_cleaner - INFO - final_records: 1
+2025-09-24 11:18:28,639 - data_processing.data_cleaner - INFO - final_columns: 4
+2025-09-24 11:18:28,639 - data_processing.data_cleaner - INFO - === END CLEANING SUMMARY ===
+2025-09-24 11:18:28,728 - analysis.metrics_calculator - INFO - Priority breakdown calculated: {'High': 0, 'Medium': 0, 'Low': 3}
+2025-09-24 11:27:13,171 - tests.test_integration - INFO - Successfully imported all required modules
+2025-09-24 11:27:13,195 - config.settings - INFO - Configuration loaded from C:\Users\jsw73\Downloads\incident_reporting_system\config\executive_config.ini
+2025-09-24 11:27:13,196 - data_processing.data_cleaner - INFO - Starting enhanced data cleaning for 1 records
+2025-09-24 11:27:13,197 - data_processing.data_cleaner - INFO - Original columns: ['Number', 'sys_created_on', 'resolved_at', 'Urgency']
+2025-09-24 11:27:13,198 - data_processing.data_cleaner - INFO - === COLUMN MAPPING ANALYSIS ===
+2025-09-24 11:27:13,198 - data_processing.data_cleaner - INFO - Available columns: ['Number', 'sys_created_on', 'resolved_at', 'Urgency']
+2025-09-24 11:27:13,198 - data_processing.data_cleaner - INFO - MAPPED: 'sys_created_on' -> 'created_date'
+2025-09-24 11:27:13,198 - data_processing.data_cleaner - INFO - MAPPED: 'resolved_at' -> 'resolved_date'
+2025-09-24 11:27:13,199 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'assignment_group' in ['Assignment Group', 'Assigned To', 'Team', 'Support Group', 'assigned_group', 'support_team', 'resolver_group', 'assignment_team', 'responsible_team']
+2025-09-24 11:27:13,199 - data_processing.data_cleaner - INFO - MAPPED: 'Urgency' -> 'priority'
+2025-09-24 11:27:13,199 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'status' in ['State', 'Status', 'Incident State', 'Current State', 'incident_status', 'current_status', 'state_name']
+2025-09-24 11:27:13,199 - data_processing.data_cleaner - INFO - MAPPED: 'Number' -> 'number'
+2025-09-24 11:27:13,199 - data_processing.data_cleaner - WARNING - NOT FOUND: No column found for 'short_description' in ['Short Description', 'Summary', 'Title', 'Subject', 'short_desc', 'incident_summary', 'description_short']
+2025-09-24 11:27:13,200 - data_processing.data_cleaner - INFO - Successfully mapped 4 columns
+2025-09-24 11:27:13,201 - data_processing.data_cleaner - INFO - === FINAL COLUMN STATUS ===
+2025-09-24 11:27:13,201 - data_processing.data_cleaner - INFO - created_date: AVAILABLE
+2025-09-24 11:27:13,201 - data_processing.data_cleaner - INFO - resolved_date: AVAILABLE
+2025-09-24 11:27:13,201 - data_processing.data_cleaner - WARNING - assignment_group: MISSING
+2025-09-24 11:27:13,201 - data_processing.data_cleaner - INFO - priority: AVAILABLE
+2025-09-24 11:27:13,202 - data_processing.data_cleaner - WARNING - status: MISSING
+2025-09-24 11:27:13,202 - data_processing.data_cleaner - INFO - number: AVAILABLE
+2025-09-24 11:27:13,202 - data_processing.data_cleaner - WARNING - short_description: MISSING
+2025-09-24 11:27:13,212 - data_processing.data_cleaner - INFO - Processing date column 'created_date' with 1 non-null values
+2025-09-24 11:27:13,220 - data_processing.data_cleaner - INFO - Standardized 'created_date': 1 valid dates
+2025-09-24 11:27:13,220 - data_processing.data_cleaner - INFO - Processing date column 'resolved_date' with 1 non-null values
+2025-09-24 11:27:13,223 - data_processing.data_cleaner - INFO - Standardized 'resolved_date': 1 valid dates
+2025-09-24 11:27:13,231 - data_processing.data_cleaner - INFO - Cleaned 2 text fields
+2025-09-24 11:27:13,234 - data_processing.data_cleaner - INFO - Canonical column Created created from created_date
+2025-09-24 11:27:13,235 - data_processing.data_cleaner - INFO - Canonical column Resolved created from resolved_date
+2025-09-24 11:27:13,236 - data_processing.data_cleaner - INFO - Canonical column Priority created from priority
+2025-09-24 11:27:13,236 - data_processing.data_cleaner - INFO - Enhanced data cleaning completed: 1 records processed
+2025-09-24 11:27:13,237 - data_processing.data_cleaner - INFO - Final columns: ['number', 'created_date', 'resolved_date', 'priority', 'Created', 'Resolved', 'Priority']
+2025-09-24 11:27:13,237 - data_processing.data_cleaner - INFO - === DATA CLEANING SUMMARY ===
+2025-09-24 11:27:13,237 - data_processing.data_cleaner - INFO - original_records: 1
+2025-09-24 11:27:13,237 - data_processing.data_cleaner - INFO - original_columns: 4
+2025-09-24 11:27:13,237 - data_processing.data_cleaner - INFO - columns_mapped: 4
+2025-09-24 11:27:13,238 - data_processing.data_cleaner - INFO - duplicates_removed: 0
+2025-09-24 11:27:13,238 - data_processing.data_cleaner - INFO - missing_values_handled: 0
+2025-09-24 11:27:13,238 - data_processing.data_cleaner - INFO - text_standardized: 2
+2025-09-24 11:27:13,238 - data_processing.data_cleaner - INFO - dates_standardized: 2
+2025-09-24 11:27:13,239 - data_processing.data_cleaner - INFO - final_records: 1
+2025-09-24 11:27:13,239 - data_processing.data_cleaner - INFO - final_columns: 4
+2025-09-24 11:27:13,239 - data_processing.data_cleaner - INFO - === END CLEANING SUMMARY ===
+2025-09-24 11:27:13,337 - analysis.metrics_calculator - INFO - Priority breakdown calculated: {'High': 0, 'Medium': 0, 'Low': 3}
