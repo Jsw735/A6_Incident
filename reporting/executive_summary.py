@@ -456,6 +456,7 @@ class EnhancedExecutiveSummary:
                     explanation = self._plain_english_explanation(key, value)
                     rows.append((key.upper().replace('_', ' '), str(value), explanation))
 
+
         # All Analysis Metrics
         rows.append(("", "", ""))
         rows.append(("Section: All Analysis Metrics", "", ""))
