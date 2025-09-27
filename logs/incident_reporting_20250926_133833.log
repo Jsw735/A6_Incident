@@ -1,0 +1,110 @@
+2025-09-26 13:38:33,761 - __main__ - INFO - main.py:134 - setup_logging() - ============================================================
+2025-09-26 13:38:33,761 - __main__ - INFO - main.py:135 - setup_logging() - SAP S/4HANA Incident Reporting System Started
+2025-09-26 13:38:33,762 - __main__ - INFO - main.py:136 - setup_logging() - Log file: C:\Users\jsw73\Downloads\incident_reporting_system\logs\incident_reporting_20250926_133833.log
+2025-09-26 13:38:33,762 - __main__ - INFO - main.py:137 - setup_logging() - ============================================================
+2025-09-26 13:38:33,764 - __main__ - INFO - main.py:753 - main() - Command line arguments: {'csv_file': None, 'skip_validation': False, 'no_pause': True, 'verbose': False, 'executive_only': False}
+2025-09-26 13:38:33,764 - __main__ - INFO - main.py:766 - main() - Starting environment validation
+2025-09-26 13:38:33,765 - __main__ - INFO - main.py:549 - validate_environment() - Directory validated: config
+2025-09-26 13:38:33,765 - __main__ - INFO - main.py:549 - validate_environment() - Directory validated: data_processing
+2025-09-26 13:38:33,765 - __main__ - INFO - main.py:549 - validate_environment() - Directory validated: analysis
+2025-09-26 13:38:33,765 - __main__ - INFO - main.py:549 - validate_environment() - Directory validated: reporting
+2025-09-26 13:38:33,765 - __main__ - INFO - main.py:549 - validate_environment() - Directory validated: utils
+2025-09-26 13:38:33,766 - __main__ - INFO - main.py:549 - validate_environment() - Directory validated: tests
+2025-09-26 13:38:33,766 - __main__ - INFO - main.py:549 - validate_environment() - Directory validated: data
+2025-09-26 13:38:33,766 - __main__ - INFO - main.py:549 - validate_environment() - Directory validated: output
+2025-09-26 13:38:33,766 - __main__ - INFO - main.py:563 - validate_environment() - Critical file validated: config/settings.py
+2025-09-26 13:38:33,766 - __main__ - INFO - main.py:563 - validate_environment() - Critical file validated: config/business_rules.py
+2025-09-26 13:38:33,767 - __main__ - INFO - main.py:567 - validate_environment() - Environment validation completed successfully
+2025-09-26 13:38:33,767 - __main__ - INFO - main.py:804 - main() - Auto-detecting incidents CSV file
+2025-09-26 13:38:33,767 - __main__ - INFO - main.py:171 - find_incidents_csv() - Found incidents CSV: C:\Users\jsw73\Downloads\incident_reporting_system\data\incidents.csv
+2025-09-26 13:38:33,768 - data_processing.data_loader - INFO - data_loader.py:40 - load_csv() - Loading CSV file: data\incidents.csv
+2025-09-26 13:38:33,807 - data_processing.data_loader - INFO - data_loader.py:50 - load_csv() - Successfully loaded CSV with latin-1 encoding
+2025-09-26 13:38:33,808 - data_processing.data_loader - INFO - data_loader.py:66 - load_csv() - Successfully loaded 1100 records from data\incidents.csv
+2025-09-26 13:38:33,808 - data_processing.data_loader - INFO - data_loader.py:67 - load_csv() - Columns found: ['number', 'urgency', 'correlation_id', 'correlation_display', 'sys_created_on', 'state', 'assigned_to', 'cmdb_ci', 'short_description', 'description', 'subcategory', 'u_boolean_3', 'category', 'assignment_group', 'resolved_at', 'location', 'work_notes', 'u_responded_at', 'u_ticket_owner', 'sys_updated_on', 'sys_updated_by', 'sys_mod_count']
+2025-09-26 13:38:33,808 - __main__ - INFO - main.py:221 - process_incident_data() - Data loading successful: Success - loaded 1100 records with latin-1 encoding
+2025-09-26 13:38:33,812 - config.settings - INFO - settings.py:67 - _load_configuration() - Configuration loaded from C:\Users\jsw73\Downloads\incident_reporting_system\config\executive_config.ini
+2025-09-26 13:38:33,813 - data_processing.data_cleaner - INFO - data_cleaner.py:99 - clean_incident_data() - Starting enhanced data cleaning for 1100 records
+2025-09-26 13:38:33,813 - data_processing.data_cleaner - INFO - data_cleaner.py:100 - clean_incident_data() - Original columns: ['number', 'urgency', 'correlation_id', 'correlation_display', 'sys_created_on', 'state', 'assigned_to', 'cmdb_ci', 'short_description', 'description', 'subcategory', 'u_boolean_3', 'category', 'assignment_group', 'resolved_at', 'location', 'work_notes', 'u_responded_at', 'u_ticket_owner', 'sys_updated_on', 'sys_updated_by', 'sys_mod_count']
+2025-09-26 13:38:33,814 - data_processing.data_cleaner - INFO - data_cleaner.py:153 - _apply_comprehensive_column_mapping() - === COLUMN MAPPING ANALYSIS ===
+2025-09-26 13:38:33,815 - data_processing.data_cleaner - INFO - data_cleaner.py:154 - _apply_comprehensive_column_mapping() - Available columns: ['number', 'urgency', 'correlation_id', 'correlation_display', 'sys_created_on', 'state', 'assigned_to', 'cmdb_ci', 'short_description', 'description', 'subcategory', 'u_boolean_3', 'category', 'assignment_group', 'resolved_at', 'location', 'work_notes', 'u_responded_at', 'u_ticket_owner', 'sys_updated_on', 'sys_updated_by', 'sys_mod_count']
+2025-09-26 13:38:33,815 - data_processing.data_cleaner - INFO - data_cleaner.py:169 - _apply_comprehensive_column_mapping() - MAPPED: 'sys_created_on' -> 'created_date'
+2025-09-26 13:38:33,815 - data_processing.data_cleaner - INFO - data_cleaner.py:169 - _apply_comprehensive_column_mapping() - MAPPED: 'resolved_at' -> 'resolved_date'
+2025-09-26 13:38:33,815 - data_processing.data_cleaner - WARNING - data_cleaner.py:178 - _apply_comprehensive_column_mapping() - NOT FOUND: No column found for 'assignment_group' in ['Assignment Group', 'Assigned To', 'Team', 'Support Group', 'assigned_group', 'support_team', 'resolver_group', 'assignment_team', 'responsible_team']
+2025-09-26 13:38:33,816 - data_processing.data_cleaner - INFO - data_cleaner.py:169 - _apply_comprehensive_column_mapping() - MAPPED: 'urgency' -> 'priority'
+2025-09-26 13:38:33,816 - data_processing.data_cleaner - INFO - data_cleaner.py:169 - _apply_comprehensive_column_mapping() - MAPPED: 'state' -> 'status'
+2025-09-26 13:38:33,816 - data_processing.data_cleaner - INFO - data_cleaner.py:173 - _apply_comprehensive_column_mapping() - ALREADY CORRECT: 'number'
+2025-09-26 13:38:33,816 - data_processing.data_cleaner - WARNING - data_cleaner.py:178 - _apply_comprehensive_column_mapping() - NOT FOUND: No column found for 'short_description' in ['Short Description', 'Summary', 'Title', 'Subject', 'short_desc', 'incident_summary', 'description_short']
+2025-09-26 13:38:33,822 - data_processing.data_cleaner - INFO - data_cleaner.py:184 - _apply_comprehensive_column_mapping() - Successfully mapped 4 columns
+2025-09-26 13:38:33,822 - data_processing.data_cleaner - INFO - data_cleaner.py:189 - _apply_comprehensive_column_mapping() - === FINAL COLUMN STATUS ===
+2025-09-26 13:38:33,823 - data_processing.data_cleaner - INFO - data_cleaner.py:192 - _apply_comprehensive_column_mapping() - created_date: AVAILABLE
+2025-09-26 13:38:33,823 - data_processing.data_cleaner - INFO - data_cleaner.py:192 - _apply_comprehensive_column_mapping() - resolved_date: AVAILABLE
+2025-09-26 13:38:33,824 - data_processing.data_cleaner - INFO - data_cleaner.py:192 - _apply_comprehensive_column_mapping() - assignment_group: AVAILABLE
+2025-09-26 13:38:33,824 - data_processing.data_cleaner - INFO - data_cleaner.py:192 - _apply_comprehensive_column_mapping() - priority: AVAILABLE
+2025-09-26 13:38:33,824 - data_processing.data_cleaner - INFO - data_cleaner.py:192 - _apply_comprehensive_column_mapping() - status: AVAILABLE
+2025-09-26 13:38:33,824 - data_processing.data_cleaner - INFO - data_cleaner.py:192 - _apply_comprehensive_column_mapping() - number: AVAILABLE
+2025-09-26 13:38:33,825 - data_processing.data_cleaner - INFO - data_cleaner.py:192 - _apply_comprehensive_column_mapping() - short_description: AVAILABLE
+2025-09-26 13:38:33,898 - data_processing.data_cleaner - INFO - data_cleaner.py:212 - _standardize_dates() - Processing date column 'created_date' with 1100 non-null values
+2025-09-26 13:38:33,906 - data_processing.data_cleaner - INFO - data_cleaner.py:223 - _standardize_dates() - Standardized 'created_date': 1100 valid dates
+2025-09-26 13:38:33,907 - data_processing.data_cleaner - INFO - data_cleaner.py:212 - _standardize_dates() - Processing date column 'resolved_date' with 900 non-null values
+2025-09-26 13:38:33,910 - data_processing.data_cleaner - INFO - data_cleaner.py:223 - _standardize_dates() - Standardized 'resolved_date': 900 valid dates
+2025-09-26 13:38:33,976 - data_processing.data_cleaner - INFO - data_cleaner.py:282 - _clean_text_fields() - Cleaned 18 text fields
+2025-09-26 13:38:33,978 - data_processing.data_cleaner - INFO - data_cleaner.py:316 - _handle_missing_values() - Handled 1021 missing values
+2025-09-26 13:38:33,986 - data_processing.data_cleaner - INFO - data_cleaner.py:381 - _ensure_canonical_output_columns() - Canonical column Created created from created_date
+2025-09-26 13:38:33,987 - data_processing.data_cleaner - INFO - data_cleaner.py:392 - _ensure_canonical_output_columns() - Canonical column Resolved created from resolved_date
+2025-09-26 13:38:33,989 - data_processing.data_cleaner - INFO - data_cleaner.py:427 - _ensure_canonical_output_columns() - Canonical column Priority created from priority
+2025-09-26 13:38:33,989 - data_processing.data_cleaner - INFO - data_cleaner.py:133 - clean_incident_data() - Enhanced data cleaning completed: 1100 records processed
+2025-09-26 13:38:33,990 - data_processing.data_cleaner - INFO - data_cleaner.py:134 - clean_incident_data() - Final columns: ['number', 'priority', 'correlation_id', 'correlation_display', 'created_date', 'status', 'assigned_to', 'cmdb_ci', 'short_description', 'description', 'subcategory', 'u_boolean_3', 'category', 'assignment_group', 'resolved_date', 'location', 'work_notes', 'u_responded_at', 'u_ticket_owner', 'sys_updated_on', 'sys_updated_by', 'sys_mod_count', 'Created', 'Resolved', 'Priority']
+2025-09-26 13:38:33,990 - data_processing.data_cleaner - INFO - data_cleaner.py:358 - _log_cleaning_summary() - === DATA CLEANING SUMMARY ===
+2025-09-26 13:38:33,990 - data_processing.data_cleaner - INFO - data_cleaner.py:360 - _log_cleaning_summary() - original_records: 1100
+2025-09-26 13:38:33,990 - data_processing.data_cleaner - INFO - data_cleaner.py:360 - _log_cleaning_summary() - original_columns: 22
+2025-09-26 13:38:33,990 - data_processing.data_cleaner - INFO - data_cleaner.py:360 - _log_cleaning_summary() - columns_mapped: 4
+2025-09-26 13:38:33,991 - data_processing.data_cleaner - INFO - data_cleaner.py:360 - _log_cleaning_summary() - duplicates_removed: 0
+2025-09-26 13:38:33,991 - data_processing.data_cleaner - INFO - data_cleaner.py:360 - _log_cleaning_summary() - missing_values_handled: 1021
+2025-09-26 13:38:33,991 - data_processing.data_cleaner - INFO - data_cleaner.py:360 - _log_cleaning_summary() - text_standardized: 18
+2025-09-26 13:38:33,991 - data_processing.data_cleaner - INFO - data_cleaner.py:360 - _log_cleaning_summary() - dates_standardized: 2
+2025-09-26 13:38:33,991 - data_processing.data_cleaner - INFO - data_cleaner.py:360 - _log_cleaning_summary() - final_records: 1100
+2025-09-26 13:38:33,991 - data_processing.data_cleaner - INFO - data_cleaner.py:360 - _log_cleaning_summary() - final_columns: 22
+2025-09-26 13:38:33,991 - data_processing.data_cleaner - INFO - data_cleaner.py:361 - _log_cleaning_summary() - === END CLEANING SUMMARY ===
+2025-09-26 13:38:33,994 - data_processing.data_validator - INFO - data_validator.py:69 - validate_data_quality() - Starting data quality validation for 1100 records
+2025-09-26 13:38:34,012 - data_processing.data_validator - INFO - data_validator.py:95 - validate_data_quality() - Data quality validation completed. Overall score: 93.76
+2025-09-26 13:38:34,013 - __main__ - INFO - main.py:287 - process_incident_data() - Data processing completed successfully
+2025-09-26 13:38:34,013 - __main__ - INFO - main.py:845 - main() - Starting comprehensive analysis workflow
+2025-09-26 13:38:34,014 - analysis.quality_analyzer - INFO - quality_analyzer.py:46 - analyze_data_quality() - Starting comprehensive data quality analysis for 1100 records
+2025-09-26 13:38:34,051 - analysis.quality_analyzer - INFO - quality_analyzer.py:64 - analyze_data_quality() - Data quality analysis completed successfully
+2025-09-26 13:38:34,054 - analysis.trend_analyzer - INFO - trend_analyzer.py:151 - analyze_trends() - Starting enhanced trend analysis for 1100 incidents
+2025-09-26 13:38:34,070 - analysis.trend_analyzer - INFO - trend_analyzer.py:187 - analyze_trends() - Trend analysis completed successfully
+2025-09-26 13:38:34,071 - analysis.metrics_calculator - INFO - metrics_calculator.py:91 - calculate_all_metrics() - Starting metrics calculation for 1100 incidents
+2025-09-26 13:38:34,112 - analysis.metrics_calculator - INFO - metrics_calculator.py:101 - calculate_all_metrics() - Metrics calculation completed successfully
+2025-09-26 13:38:34,112 - __main__ - INFO - main.py:441 - run_comprehensive_analysis() - Comprehensive analysis completed successfully
+2025-09-26 13:38:34,113 - __main__ - INFO - main.py:853 - main() - Starting report generation workflow
+2025-09-26 13:38:34,114 - __main__ - INFO - main.py:315 - generate_executive_summary() - Starting executive summary generation
+2025-09-26 13:38:34,117 - analysis.metrics_calculator - INFO - metrics_calculator.py:186 - calculate_priority_breakdown() - Priority breakdown calculated: {'High': 78, 'Medium': 984, 'Low': 38}
+2025-09-26 13:38:34,118 - analysis.metrics_calculator - INFO - metrics_calculator.py:186 - calculate_priority_breakdown() - Priority breakdown calculated: {'High': 78, 'Medium': 984, 'Low': 38}
+2025-09-26 13:38:34,120 - analysis.metrics_calculator - INFO - metrics_calculator.py:186 - calculate_priority_breakdown() - Priority breakdown calculated: {'High': 11, 'Medium': 169, 'Low': 20}
+2025-09-26 13:38:34,137 - analysis.metrics_calculator - INFO - metrics_calculator.py:186 - calculate_priority_breakdown() - Priority breakdown calculated: {'High': 78, 'Medium': 984, 'Low': 38}
+2025-09-26 13:38:34,138 - analysis.metrics_calculator - INFO - metrics_calculator.py:186 - calculate_priority_breakdown() - Priority breakdown calculated: {'High': 11, 'Medium': 169, 'Low': 20}
+2025-09-26 13:38:34,143 - analysis.metrics_calculator - INFO - metrics_calculator.py:186 - calculate_priority_breakdown() - Priority breakdown calculated: {'High': 78, 'Medium': 984, 'Low': 38}
+2025-09-26 13:38:34,144 - analysis.metrics_calculator - INFO - metrics_calculator.py:186 - calculate_priority_breakdown() - Priority breakdown calculated: {'High': 11, 'Medium': 169, 'Low': 20}
+2025-09-26 13:38:34,416 - reporting.excel_generator - INFO - excel_generator.py:171 - create_comprehensive_report() - Creating enhanced Excel report: output\enhanced_incident_report_20250926_133834.xlsx
+2025-09-26 13:38:34,421 - reporting.excel_generator - INFO - excel_generator.py:549 - _style_metrics_dataframe() - jinja2 not available; skipping pandas Styler formatting for metrics sheet
+2025-09-26 13:38:34,604 - reporting.excel_generator - INFO - excel_generator.py:767 - _write_main_data_sheet() - Main data sheet written with 1100 rows and 25 columns
+2025-09-26 13:38:35,913 - reporting.excel_generator - INFO - excel_generator.py:195 - create_comprehensive_report() - Enhanced Excel report created successfully: output\enhanced_incident_report_20250926_133834.xlsx
+2025-09-26 13:38:35,913 - __main__ - INFO - main.py:340 - generate_executive_summary() - Executive summary exported to: output\executive_summary_20250926_133834.xlsx
+2025-09-26 13:38:35,914 - reporting.daily_reporter - INFO - daily_reporter.py:41 - generate_daily_report() - Generating daily report for 1100 incidents
+2025-09-26 13:38:35,927 - reporting.daily_reporter - INFO - daily_reporter.py:81 - generate_daily_report() - Daily report generated successfully: reports/daily_report_20250926_133835.txt
+2025-09-26 13:38:35,942 - reporting.weekly_reporter - INFO - weekly_reporter.py:190 - _validate_dataframe_and_parameters() - Validation Summary: 1100 records, 26 columns
+2025-09-26 13:38:35,943 - reporting.weekly_reporter - INFO - weekly_reporter.py:191 - _validate_dataframe_and_parameters() - Data Quality: 87.0%, Field Coverage: 42.9%
+2025-09-26 13:38:35,943 - reporting.weekly_reporter - INFO - weekly_reporter.py:523 - generate_weekly_report() - Validation completed - Quality: 87.0%, Coverage: 42.9%
+2025-09-26 13:38:35,948 - reporting.weekly_reporter - INFO - weekly_reporter.py:216 - _standardize_columns() - Mapped 21 columns
+2025-09-26 13:38:35,950 - reporting.weekly_reporter - INFO - weekly_reporter.py:233 - _standardize_columns() - Converted created_date: 1100/1100 valid dates
+2025-09-26 13:38:35,952 - reporting.weekly_reporter - INFO - weekly_reporter.py:233 - _standardize_columns() - Converted resolved_date: 900/1100 valid dates
+2025-09-26 13:38:35,956 - reporting.weekly_reporter - INFO - weekly_reporter.py:233 - _standardize_columns() - Converted response_time: 1100/1100 valid dates
+2025-09-26 13:38:35,962 - reporting.weekly_reporter - INFO - weekly_reporter.py:233 - _standardize_columns() - Converted last_updated: 1100/1100 valid dates
+2025-09-26 13:38:35,972 - reporting.weekly_reporter - ERROR - weekly_reporter.py:301 - _calculate_comprehensive_metrics() - Error in comprehensive metrics calculation: unsupported type for timedelta weeks component: dict
+2025-09-26 13:38:35,973 - reporting.weekly_reporter - ERROR - weekly_reporter.py:559 - generate_weekly_report() - Report generation error: 'WeeklyReporter' object has no attribute '_analyze_enhanced_workstreams'
+2025-09-26 13:38:35,975 - reporting.excel_generator - INFO - excel_generator.py:171 - create_comprehensive_report() - Creating enhanced Excel report: output\enhanced_incident_report_20250926_133835.xlsx
+2025-09-26 13:38:35,982 - reporting.excel_generator - INFO - excel_generator.py:549 - _style_metrics_dataframe() - jinja2 not available; skipping pandas Styler formatting for metrics sheet
+2025-09-26 13:38:36,175 - reporting.excel_generator - INFO - excel_generator.py:767 - _write_main_data_sheet() - Main data sheet written with 1100 rows and 25 columns
+2025-09-26 13:38:37,607 - reporting.excel_generator - INFO - excel_generator.py:195 - create_comprehensive_report() - Enhanced Excel report created successfully: output\enhanced_incident_report_20250926_133835.xlsx
+2025-09-26 13:38:37,608 - __main__ - INFO - main.py:514 - generate_all_reports() - Generated 4 reports successfully
+2025-09-26 13:38:37,609 - __main__ - INFO - main.py:860 - main() - Main processing completed successfully
