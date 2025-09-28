@@ -1818,7 +1818,7 @@ class EnhancedExecutiveSummary:
             pie_chart.dataLabels.showSerName = False  # Don't show series names
             pie_chart.dataLabels.position = 'bestFit'  # Set data labels to best fit
             
-            # Position legend to the right
+            # Position legend to the right (explicitly set as right-aligned)
             pie_chart.legend.position = 'r'
             
             # Position the chart over the priority distribution table (F13 area)
@@ -1856,21 +1856,28 @@ class EnhancedExecutiveSummary:
             # Style the chart axes with proper positioning
             line_chart.x_axis.title = "Week"
             line_chart.y_axis.title = "Count"
-            line_chart.legend.position = 'r'  # Right position
+            
+            # Hide the legend/color bar as requested
+            line_chart.legend = None
             
             # Configure x-axis to show week labels at the bottom
             line_chart.x_axis.tickLblPos = "low"  # Position labels at bottom
             line_chart.x_axis.majorTickMark = "out"
             line_chart.x_axis.minorTickMark = "out"
             
-            # Configure y-axis with grid lines for better readability
+            # Configure y-axis with grid lines and numbers for better readability
             try:
                 from openpyxl.chart.axis import ChartLines
                 line_chart.y_axis.majorGridlines = ChartLines()
-            except:
-                # Fallback if grid lines can't be configured
-                pass
-            line_chart.y_axis.majorTickMark = "out"
+                # Show tick marks and labels on y-axis for grid numbers
+                line_chart.y_axis.majorTickMark = "out"
+                line_chart.y_axis.minorTickMark = "in"
+                # Ensure y-axis labels are visible (grid numbers)
+                line_chart.y_axis.delete = False
+            except Exception as grid_error:
+                print(f"Warning: Could not configure grid lines: {grid_error}")
+                # Fallback - at least ensure y-axis shows numbers
+                line_chart.y_axis.majorTickMark = "out"
             
             # Add data labels to both series showing values
             try:
