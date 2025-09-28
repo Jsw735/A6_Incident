@@ -35,15 +35,17 @@ class SystemTester:
         # Add project root to Python path
         sys.path.insert(0, str(self.project_root))
         
-        print(f"Project root set to: {self.project_root}")
-        print(f"Working directory: {Path.cwd()}")
-
-        # configure logging and initialize state
+        print(f"🔧 Project root set to: {self.project_root}")
+        print(f"🔧 Working directory: {Path.cwd()}")
+    
+    self.setup_logging()
+    self.test_results = {}
         self.setup_logging()
         self.test_results = {}
+        self.project_root = Path.cwd()
         self.modules_to_test = [
             'data.data_processor',
-            'data.data_validator',
+            'data.data_validator', 
             'data.file_handler',
             'analysis.incident_analyzer',
             'analysis.keyword_analyzer',
@@ -57,7 +59,7 @@ class SystemTester:
             'utils.date_utils',
             'utils.file_utils',
             'utils.validation_utils',
-            'utils.format_utils',
+            'utils.format_utils'
         ]
         
     def setup_logging(self):
@@ -149,7 +151,7 @@ class SystemTester:
     
     def pause_and_continue(self, step_description):
         """Pause execution and wait for user input before continuing."""
-        print(f"\n[STEP] {step_description}")
+        print(f"\n🔍 {step_description}")
         print("-" * len(step_description))
         
         try:
@@ -166,7 +168,7 @@ class SystemTester:
         try:
             # Check Python version
             python_version = sys.version_info
-            print(f"[OK] Python version: {python_version.major}.{python_version.minor}.{python_version.micro}")
+            print(f"✅ Python version: {python_version.major}.{python_version.minor}.{python_version.micro}")
             
             # Check critical dependencies for Excel work
             dependencies = ['pandas', 'openpyxl', 'pathlib', 'datetime', 'logging', 'json']
@@ -175,9 +177,9 @@ class SystemTester:
             for dep in dependencies:
                 try:
                     importlib.import_module(dep)
-                    print(f"[OK] {dep} - Available")
+                    print(f"✅ {dep} - Available")
                 except ImportError:
-                    print(f"[MISSING] {dep} - Missing")
+                    print(f"❌ {dep} - Missing")
                     missing_deps.append(dep)
             
             # Check Excel-specific dependencies
@@ -187,7 +189,7 @@ class SystemTester:
                     importlib.import_module(dep)
                     print(f"✅ {dep} - Available (Excel support)")
                 except ImportError:
-                    print(f"[WARN] {dep} - Missing (Excel functionality may be limited)")
+                    print(f"⚠️  {dep} - Missing (Excel functionality may be limited)")
             
             self.test_results['environment'] = {
                 'python_version': f"{python_version.major}.{python_version.minor}",

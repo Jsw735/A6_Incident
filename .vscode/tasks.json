@@ -1,0 +1,35 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run main.py (no pause)",
+			"type": "shell",
+			"command": "C:/Users/jsw73/Downloads/incident_reporting_system/.venv/Scripts/python.exe",
+			"args": [
+				"main.py",
+				"data/incident.csv",
+				"--no-pause"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$python"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Run main.py (no pause) - 2",
+			"type": "shell",
+			"command": "C:/Users/jsw73/Downloads/incident_reporting_system/.venv/Scripts/python.exe",
+			"args": [
+				"main.py",
+				"data/incident.csv",
+				"--no-pause"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$python"
+			],
+			"group": "build"
+		}
+	]
+}
