@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual Environment
+.venv/
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# Output files
+output/
+reports/
+*.xlsx
+*.csv
+!data/incident.csv
+!data/sample_data.csv
+
+# Temporary files
+temp_*
+*.tmp
+~$*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backup files
+backup/
+archive/
+cleanup.log
+
+# Development files
+development/
+documentation/integration_test.log
+check_*.py
+examine_*.py
+detailed_*.py
+enhanced_*.py
+cleanup_*
+organize_*.py
+working_*.py

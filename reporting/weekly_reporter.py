@@ -572,6 +572,72 @@ class WeeklyReporter:
             'generated_at': datetime.now().isoformat()
         }
     
+    def _analyze_enhanced_workstreams(self, df: pd.DataFrame, weeks_back: int = 1) -> Dict[str, Any]:
+        """
+        Analyze workstreams with enhanced metrics including performance and trends.
+        """
+        try:
+            if df.empty:
+                return {'error': 'No data available for workstream analysis'}
+            
+            # Get workstream column (assignment_group or similar)
+            workstream_col = None
+            for col in ['assignment_group', 'assigned_to', 'workstream', 'team']:
+                if col in df.columns:
+                    workstream_col = col
+                    break
+            
+            if not workstream_col:
+                return {'error': 'No workstream column found'}
+            
+            # Overall workstream metrics
+            workstream_stats = {}
+            total_incidents = len(df)
+            
+            for workstream in df[workstream_col].dropna().unique():
+                workstream_data = df[df[workstream_col] == workstream]
+                
+                # Basic counts
+                count = len(workstream_data)
+                percentage = (count / total_incidents * 100) if total_incidents > 0 else 0
+                
+                # Open vs closed analysis
+                open_count = 0
+                closed_count = 0
+                if 'status' in df.columns:
+                    open_states = ['Open', 'New', 'In Progress', 'Assigned', 'Active']
+                    closed_states = ['Closed', 'Resolved', 'Completed', 'Done']
+                    
+                    open_count = len(workstream_data[workstream_data['status'].isin(open_states)])
+                    closed_count = len(workstream_data[workstream_data['status'].isin(closed_states)])
+                
+                completion_rate = (closed_count / count * 100) if count > 0 else 0
+                
+                workstream_stats[workstream] = {
+                    'total_incidents': count,
+                    'percentage_of_total': round(percentage, 1),
+                    'open_incidents': open_count,
+                    'closed_incidents': closed_count,
+                    'completion_rate': round(completion_rate, 1)
+                }
+            
+            # Sort by total incidents (descending)
+            sorted_workstreams = dict(sorted(workstream_stats.items(), 
+                                          key=lambda x: x[1]['total_incidents'], 
+                                          reverse=True))
+            
+            return {
+                'workstream_analysis': sorted_workstreams,
+                'total_workstreams': len(sorted_workstreams),
+                'analysis_period': f'Last {weeks_back} week(s)',
+                'most_active_workstream': max(sorted_workstreams.keys(), 
+                                            key=lambda x: sorted_workstreams[x]['total_incidents']) if sorted_workstreams else 'None'
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error in enhanced workstream analysis: {str(e)}")
+            return {'error': f'Workstream analysis failed: {str(e)}'}
+    
     def _prepare_dashboard_data(self, metrics: Dict[str, Any], workstreams: Dict[str, Any]) -> Dict[str, Any]:
         """
         Prepare data specifically formatted for dashboard display.
@@ -630,6 +696,174 @@ class WeeklyReporter:
             return max(0, total - resolved)
         except:
             return 0
+
+    def _calculate_closure_trends(self, df: pd.DataFrame, weeks_back: int) -> Dict[str, Any]:
+        """Calculate closure trends over the specified number of weeks."""
+        try:
+            # Get created and resolved date columns
+            created_col = None
+            resolved_col = None
+            
+            for col in ['created_date', 'sys_created_on', 'Created']:
+                if col in df.columns:
+                    created_col = col
+                    break
+                    
+            for col in ['resolved_date', 'resolved_at', 'Resolved']:
+                if col in df.columns:
+                    resolved_col = col
+                    break
+            
+            if not created_col:
+                return {'error': 'No created date column found'}
+                
+            # Prepare data
+            df_copy = df.copy()
+            df_copy[created_col] = pd.to_datetime(df_copy[created_col], errors='coerce')
+            if resolved_col:
+                df_copy[resolved_col] = pd.to_datetime(df_copy[resolved_col], errors='coerce')
+            
+            # Calculate weekly closure trends
+            current_date = pd.Timestamp.now()
+            weeks_data = []
+            
+            for i in range(weeks_back):
+                week_start = current_date - pd.Timedelta(weeks=i+1)
+                week_end = current_date - pd.Timedelta(weeks=i)
+                
+                # Incidents resolved this week
+                if resolved_col:
+                    resolved_this_week = df_copy[
+                        (df_copy[resolved_col] >= week_start) & 
+                        (df_copy[resolved_col] < week_end)
+                    ]
+                    resolved_count = len(resolved_this_week)
+                else:
+                    resolved_count = 0
+                
+                # Incidents created this week
+                created_this_week = df_copy[
+                    (df_copy[created_col] >= week_start) & 
+                    (df_copy[created_col] < week_end)
+                ]
+                created_count = len(created_this_week)
+                
+                weeks_data.append({
+                    'week_start': week_start.strftime('%Y-%m-%d'),
+                    'week_end': week_end.strftime('%Y-%m-%d'),
+                    'created_count': created_count,
+                    'resolved_count': resolved_count,
+                    'net_change': created_count - resolved_count
+                })
+            
+            return {
+                'weeks_analyzed': weeks_back,
+                'weekly_data': weeks_data,
+                'average_created': sum(w['created_count'] for w in weeks_data) / len(weeks_data) if weeks_data else 0,
+                'average_resolved': sum(w['resolved_count'] for w in weeks_data) / len(weeks_data) if weeks_data else 0
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error calculating closure trends: {str(e)}")
+            return {'error': str(e)}
+
+    def _calculate_week_over_week(self, df: pd.DataFrame) -> Dict[str, Any]:
+        """Calculate week-over-week comparison metrics."""
+        try:
+            # Get created date column
+            created_col = None
+            for col in ['created_date', 'sys_created_on', 'Created']:
+                if col in df.columns:
+                    created_col = col
+                    break
+            
+            if not created_col:
+                return {'error': 'No created date column found'}
+            
+            # Prepare data
+            df_copy = df.copy()
+            df_copy[created_col] = pd.to_datetime(df_copy[created_col], errors='coerce')
+            
+            # Calculate week boundaries
+            current_date = pd.Timestamp.now()
+            this_week_start = current_date - pd.Timedelta(days=current_date.dayofweek)
+            last_week_start = this_week_start - pd.Timedelta(weeks=1)
+            last_week_end = this_week_start - pd.Timedelta(days=1)
+            two_weeks_ago_start = last_week_start - pd.Timedelta(weeks=1)
+            two_weeks_ago_end = last_week_start - pd.Timedelta(days=1)
+            
+            # This week incidents
+            this_week_incidents = df_copy[
+                df_copy[created_col] >= this_week_start
+            ]
+            this_week_count = len(this_week_incidents)
+            
+            # Last week incidents  
+            last_week_incidents = df_copy[
+                (df_copy[created_col] >= last_week_start) & 
+                (df_copy[created_col] <= last_week_end)
+            ]
+            last_week_count = len(last_week_incidents)
+            
+            # Two weeks ago incidents
+            two_weeks_ago_incidents = df_copy[
+                (df_copy[created_col] >= two_weeks_ago_start) & 
+                (df_copy[created_col] <= two_weeks_ago_end)
+            ]
+            two_weeks_ago_count = len(two_weeks_ago_incidents)
+            
+            # Calculate changes
+            wow_change = last_week_count - two_weeks_ago_count
+            wow_pct_change = (wow_change / max(two_weeks_ago_count, 1)) * 100
+            
+            current_vs_last_change = this_week_count - last_week_count
+            current_vs_last_pct = (current_vs_last_change / max(last_week_count, 1)) * 100
+            
+            return {
+                'this_week_count': this_week_count,
+                'last_week_count': last_week_count,
+                'two_weeks_ago_count': two_weeks_ago_count,
+                'wow_change': wow_change,
+                'wow_pct_change': round(wow_pct_change, 1),
+                'current_vs_last_change': current_vs_last_change,
+                'current_vs_last_pct': round(current_vs_last_pct, 1),
+                'trend': 'increasing' if wow_pct_change > 5 else 'decreasing' if wow_pct_change < -5 else 'stable'
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error calculating week-over-week comparison: {str(e)}")
+            return {'error': str(e)}
+    
+    def _create_enhanced_summary(self, weekly_metrics: Dict[str, Any], workstream_analysis: Dict[str, Any]) -> Dict[str, Any]:
+        """Create enhanced summary from weekly metrics and workstream analysis."""
+        try:
+            summary = {
+                'total_incidents': weekly_metrics.get('total_incidents', 0),
+                'open_incidents': weekly_metrics.get('open_incidents', 0),
+                'closed_incidents': weekly_metrics.get('closed_incidents', 0),
+                'closure_rate': weekly_metrics.get('closure_rate_percentage', 0.0),
+                'avg_resolution_time': weekly_metrics.get('avg_resolution_time_hours', 0.0),
+                'sla_compliance': weekly_metrics.get('sla_compliance_percentage', 0.0),
+                'priority_breakdown': weekly_metrics.get('priority_breakdown', {}),
+                'top_categories': workstream_analysis.get('top_categories', []),
+                'trend_direction': 'stable',  # Default, could be enhanced with trend data
+                'key_insights': []
+            }
+            
+            # Add key insights based on metrics
+            if summary['closure_rate'] > 80:
+                summary['key_insights'].append("Strong closure rate performance")
+            elif summary['closure_rate'] < 50:
+                summary['key_insights'].append("Closure rate needs attention")
+                
+            if summary['open_incidents'] > 100:
+                summary['key_insights'].append("High backlog volume")
+                
+            return summary
+            
+        except Exception as e:
+            self.logger.error(f"Error creating enhanced summary: {str(e)}")
+            return {'error': str(e)}
     
     # Additional helper methods would continue here...
     # (Truncated for length - the remaining methods follow the same pattern)    

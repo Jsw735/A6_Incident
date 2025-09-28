@@ -24,12 +24,6 @@ class IncidentDataCleaner:
         self.cleaning_stats = {}
         self.validation_rules = self._initialize_validation_rules()
         self.column_mapping = self._initialize_comprehensive_column_mapping()
-        # attempt to load Settings (optional)
-        try:
-            from config.settings import Settings
-            self.settings = Settings()
-        except Exception:
-            self.settings = None
     
     def _initialize_comprehensive_column_mapping(self) -> Dict[str, List[str]]:
         """Initialize comprehensive column mapping that matches ALL reporter expectations."""
@@ -81,8 +75,7 @@ class IncidentDataCleaner:
         return {
             'required_columns': ['number', 'status', 'short_description'],
             'date_columns': ['created_date', 'resolved_date'],  # Updated names
-            # Removed 'urgency'/'priority' from numeric coercion to preserve label strings like '1 - High'
-            'numeric_columns': [],
+            'numeric_columns': ['urgency', 'priority'],
             'text_columns': ['short_description', 'description', 'work_notes'],
             'categorical_columns': ['status', 'category', 'subcategory', 'assignment_group']
         }
@@ -98,6 +91,12 @@ class IncidentDataCleaner:
             
             self.logger.info(f"Starting enhanced data cleaning for {len(df)} records")
             self.logger.info(f"Original columns: {list(df.columns)}")
+            
+            # PRESERVE PRIORITY VALUES BEFORE ANY PROCESSING
+            priority_backup = None
+            if 'urgency' in df.columns:
+                priority_backup = df['urgency'].copy()
+                self.logger.info(f"Backed up {len(priority_backup)} priority values")
             
             # Initialize cleaning statistics
             self.cleaning_stats = {
@@ -124,12 +123,15 @@ class IncidentDataCleaner:
             cleaned_df = self._standardize_categorical_data(cleaned_df)
             cleaned_df = self._validate_data_types(cleaned_df)
             
+            # RESTORE PRIORITY VALUES - BYPASS ALL CLEANING
+            if priority_backup is not None and 'priority' in cleaned_df.columns:
+                cleaned_df['priority'] = priority_backup
+                self.logger.info(f"Restored {len(priority_backup)} priority values - BYPASSED ALL CLEANING")
+            
             # Update final statistics
             self.cleaning_stats['final_records'] = len(cleaned_df)
             self.cleaning_stats['final_columns'] = len(cleaned_df.columns)
-            # Ensure canonical output columns required by downstream analyzers
-            cleaned_df = self._ensure_canonical_output_columns(cleaned_df)
-
+            
             self.logger.info(f"Enhanced data cleaning completed: {len(cleaned_df)} records processed")
             self.logger.info(f"Final columns: {list(cleaned_df.columns)}")
             self._log_cleaning_summary()
@@ -166,16 +168,16 @@ class IncidentDataCleaner:
                         if original_name != standard_name:
                             mapped_columns[original_name] = standard_name
                             columns_mapped += 1
-                            self.logger.info(f"MAPPED: '{original_name}' -> '{standard_name}'")
+                            self.logger.info(f"✅ MAPPED: '{original_name}' -> '{standard_name}'")
                             mapped = True
                             break
                         else:
-                            self.logger.info(f"ALREADY CORRECT: '{original_name}'")
+                            self.logger.info(f"✅ ALREADY CORRECT: '{original_name}'")
                             mapped = True
                             break
                 
                 if not mapped:
-                    self.logger.warning(f"NOT FOUND: No column found for '{standard_name}' in {possible_names}")
+                    self.logger.warning(f"❌ NOT FOUND: No column found for '{standard_name}' in {possible_names}")
             
             # Apply the mapping
             if mapped_columns:
@@ -189,9 +191,9 @@ class IncidentDataCleaner:
             self.logger.info("=== FINAL COLUMN STATUS ===")
             for standard_name in self.column_mapping.keys():
                 if standard_name in df.columns:
-                    self.logger.info(f"{standard_name}: AVAILABLE")
+                    self.logger.info(f"✅ {standard_name}: AVAILABLE")
                 else:
-                    self.logger.warning(f"{standard_name}: MISSING")
+                    self.logger.warning(f"❌ {standard_name}: MISSING")
             
             return df
             
@@ -220,7 +222,7 @@ class IncidentDataCleaner:
                             self.logger.warning(f"Lost {lost_dates} dates during conversion of '{col}'")
                         
                         dates_processed += 1
-                        self.logger.info(f"Standardized '{col}': {converted_count} valid dates")
+                        self.logger.info(f"✅ Standardized '{col}': {converted_count} valid dates")
                         
                     except Exception as e:
                         self.logger.warning(f"Could not convert {col} to datetime: {str(e)}")
@@ -271,8 +273,9 @@ class IncidentDataCleaner:
                     # Replace multiple spaces with single space
                     df[col] = df[col].str.replace(r'\s+', ' ', regex=True)
                     
-                    # Handle common text issues
-                    df[col] = df[col].replace(['nan', 'NaN', 'NULL', 'null'], pd.NA)
+                    # Handle common text issues - BUT PRESERVE PRIORITY VALUES
+                    if col != 'priority':  # Don't mess with priority column
+                        df[col] = df[col].replace(['nan', 'NaN', 'NULL', 'null'], pd.NA)
                     
                     text_fields_processed += 1
             
@@ -361,78 +364,6 @@ class IncidentDataCleaner:
             self.logger.info("=== END CLEANING SUMMARY ===")
         except Exception as e:
             self.logger.error(f"Error logging cleaning summary: {str(e)}")
-
-    def _ensure_canonical_output_columns(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Create canonical columns `Created`, `Resolved`, and `Priority` from the mapped fields.
-
-        Uses the cleaned/mapped names (created_date, resolved_date, priority) and
-        produces DataFrame columns with the exact names expected by analyzers.
-        """
-        try:
-            # Work on a copy
-            out = df.copy()
-
-            # Created
-            if 'Created' not in out.columns:
-                for src in ['created_date', 'created', 'Created']:
-                    if src in out.columns:
-                        try:
-                            out['Created'] = pd.to_datetime(out[src], errors='coerce')
-                            self.logger.info(f"Canonical column Created created from {src}")
-                            break
-                        except Exception:
-                            continue
-
-            # Resolved
-            if 'Resolved' not in out.columns:
-                for src in ['resolved_date', 'resolved', 'Resolved']:
-                    if src in out.columns:
-                        try:
-                            out['Resolved'] = pd.to_datetime(out[src], errors='coerce')
-                            self.logger.info(f"Canonical column Resolved created from {src}")
-                            break
-                        except Exception:
-                            continue
-
-            # Priority (normalize names)
-            if 'Priority' not in out.columns:
-                for src in ['priority', 'Priority', 'urgency', 'Urgency']:
-                    if src in out.columns:
-                        try:
-                            out['Priority'] = out[src]
-                            # Normalize priority values using settings mapping when available
-                            try:
-                                if self.settings is not None:
-                                    mapping = self.settings.get_urgency_mapping()
-                                    if isinstance(out['Priority'], pd.Series):
-                                        def map_val(v):
-                                            if pd.isna(v):
-                                                return v
-                                            s = str(v).strip()
-                                            # numeric strings like '1' or '1.0'
-                                            try:
-                                                if s.replace('.', '', 1).isdigit():
-                                                    key = str(int(float(s)))
-                                                    return mapping.get(key, s)
-                                            except Exception:
-                                                pass
-                                            return mapping.get(s, s)
-
-                                        out['Priority'] = out['Priority'].apply(map_val)
-
-                            except Exception:
-                                # if mapping fails, leave values as-is
-                                pass
-
-                            self.logger.info(f"Canonical column Priority created from {src}")
-                            break
-                        except Exception:
-                            continue
-
-            return out
-        except Exception as e:
-            self.logger.error(f"Error ensuring canonical output columns: {e}")
-            return df
     
     def get_cleaning_stats(self) -> Dict[str, Any]:
         """Get cleaning statistics for reporting and analysis."""
