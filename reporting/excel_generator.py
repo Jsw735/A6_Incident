@@ -133,6 +133,9 @@ class ExcelGenerator:
         self.logger = logging.getLogger(__name__)
         self.output_dir = Path("output")
         self.output_dir.mkdir(exist_ok=True)
+        # Create Archive subdirectory if it doesn't exist
+        self.archive_dir = self.output_dir / "Archive"
+        self.archive_dir.mkdir(exist_ok=True)
         
         # Initialize enhanced style manager
         self.style_manager = EnhancedExcelStyleManager()
@@ -143,6 +146,56 @@ class ExcelGenerator:
         # Define standard Excel styling
         if OPENPYXL_AVAILABLE:
             self._initialize_standard_styles()
+    
+    def _archive_old_files(self, output_file_path: str) -> None:
+        """
+        Archive all files except the current and previous one before writing new files.
+        Keeps the 2 most recent files of each type and moves older ones to Archive folder.
+        """
+        try:
+            import shutil
+            import glob
+            from datetime import datetime
+            
+            # Get file patterns to look for
+            file_patterns = [
+                "incidents_kpi_report_*.xlsx",
+                "incident_analysis_report_*.xlsx",
+                "executive_summary_*.xlsx",
+                "enhanced_incident_report_*.xlsx"
+            ]
+            
+            for pattern in file_patterns:
+                # Get all files matching this pattern
+                files = list(self.output_dir.glob(pattern))
+                
+                # Sort by modification time (newest first)
+                files.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+                
+                # Keep only the 2 most recent files, archive the rest
+                files_to_archive = files[2:]  # Skip first 2 (current and previous)
+                
+                for file_path in files_to_archive:
+                    archive_path = self.archive_dir / file_path.name
+                    if file_path.exists():
+                        # Move file to archive
+                        shutil.move(str(file_path), str(archive_path))
+                        print(f"Archived: {file_path.name} -> Archive/")
+            
+            # Also clean up temp Excel lock files
+            temp_files = list(self.output_dir.glob("~$*"))
+            for temp_file in temp_files:
+                try:
+                    temp_file.unlink()
+                    print(f"Cleaned temp file: {temp_file.name}")
+                except:
+                    pass  # Ignore if file is locked
+                    
+            print(f"File archiving completed - kept 2 most recent of each type")
+            
+        except Exception as e:
+            print(f"Warning: Error during file archiving: {e}")
+            # Don't fail the main process if archiving fails
     
     def _initialize_standard_styles(self):
         """Initialize standard Excel styles."""
@@ -169,6 +222,9 @@ class ExcelGenerator:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"incident_analysis_report_{timestamp}.xlsx"
             filepath = self.output_dir / filename
+            
+            # Archive old files before creating new ones
+            self._archive_old_files(str(filepath))
             
             self.logger.info(f"Creating comprehensive Excel report: {filename}")
             

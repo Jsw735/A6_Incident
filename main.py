@@ -51,7 +51,6 @@ def import_modules_safely():
         from reporting.executive_summary import EnhancedExecutiveSummary
         from reporting.weekly_reporter import WeeklyReporter
         from reporting.daily_reporter import DailyReporter
-        from reporting.excel_generator import ExcelGenerator
 
         # Utility Components
         from utils.excel_utils import ExcelUtils
@@ -70,7 +69,7 @@ def import_modules_safely():
             'TrendAnalyzer': TrendAnalyzer, 'MetricsCalculator': MetricsCalculator,
             'KeywordManager': KeywordManager, 'EnhancedExecutiveSummary': EnhancedExecutiveSummary,
             'WeeklyReporter': WeeklyReporter, 'DailyReporter': DailyReporter,
-            'ExcelGenerator': ExcelGenerator, 'ExcelUtils': ExcelUtils,
+            'ExcelUtils': ExcelUtils,
             'DateUtils': DateUtils, 'TextAnalyzer': TextAnalyzer,
             'Settings': Settings, 'BusinessRules': BusinessRules  # Use capitalized class names
         }
@@ -415,8 +414,11 @@ def run_comprehensive_analysis(data, args, modules):
         metrics_calculator = MetricsCalculator()
         metrics_results = metrics_calculator.calculate_all_metrics(data)
         results['metrics'] = metrics_results
-        total_incidents = metrics_results.get('total_incidents', 0)
-        open_incidents = metrics_results.get('open_incidents', 0)
+        
+        # Extract metrics from the structured results
+        core_metrics = metrics_results.get('core_metrics', {})
+        total_incidents = core_metrics.get('total_incidents', metrics_results.get('total_records_analyzed', 0))
+        open_incidents = core_metrics.get('open_incidents', 0)
         print(f"Metrics calculated - Total: {total_incidents:,}, Open: {open_incidents:,}")
     except Exception as e:
         if logger:
@@ -497,19 +499,17 @@ def generate_all_reports(data, analysis_results, args, modules):
             logger.error(f"Weekly report generation failed: {e}")
             print(f"WARNING: Weekly report generation failed: {e}")
 
-        # Generate Excel Report
-        print("Generating comprehensive Excel report...")
+        # Archive old incidents_kpi_report files (keep only 2 most recent)
         try:
-            ExcelGenerator = modules.get('ExcelGenerator')
-            if ExcelGenerator:
-                excel_generator = ExcelGenerator()
-                excel_file = excel_generator.create_comprehensive_report(data, analysis_results)
-                if excel_file:
-                    report_files['excel'] = str(excel_file)
-                    print(f"Excel report: {excel_file}")
+            print("\nArchiving old report files...")
+            EnhancedExecutiveSummary = modules.get('EnhancedExecutiveSummary')
+            if EnhancedExecutiveSummary and 'executive' in report_files:
+                # Create a temporary instance just for archiving
+                archiver = EnhancedExecutiveSummary()
+                archiver.archive_kpi_reports_only()
         except Exception as e:
-            logger.error(f"Excel report generation failed: {e}")
-            print(f"WARNING: Excel report generation failed: {e}")
+            logger.error(f"Report archiving failed: {e}")
+            print(f"WARNING: Report archiving failed: {e}")
 
         logger.info(f"Generated {len(report_files)} reports successfully")
         return report_files
