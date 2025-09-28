@@ -7,6 +7,7 @@ Following clean code principles and defensive programming.
 
 import sys
 import logging
+import hashlib
 from typing import Dict, List, Set, Any, Optional, Union, Tuple
 from pathlib import Path
 import pandas as pd
@@ -18,10 +19,42 @@ class IncidentDataLoader:
     """
     
     def __init__(self):
-        """Initialize the data loader with comprehensive logging."""
+        """Initialize the optimized data loader with caching and performance improvements."""
         self.logger = logging.getLogger(__name__)
         self.supported_formats = ['.csv', '.xlsx', '.json']
         self.encoding_attempts = ['utf-8', 'latin-1', 'cp1252', 'ascii']
+        
+        # NEW: Encoding cache to avoid repeated detection
+        self.encoding_cache = {}
+        
+        # NEW: Optimized dtypes to reduce memory usage
+        self.dtype_optimizations = {
+            'number': 'string',  # pandas string dtype is more efficient
+            'priority': 'category',
+            'urgency': 'category', 
+            'state': 'category',
+            'status': 'category',
+            'assignment_group': 'category'
+        }
+    
+    def _get_file_signature(self, file_path: Path) -> str:
+        """Generate a signature for file to cache encoding detection."""
+        try:
+            stat = file_path.stat()
+            signature = f"{file_path.name}_{stat.st_size}_{stat.st_mtime}"
+            return hashlib.md5(signature.encode()).hexdigest()
+        except Exception:
+            return str(file_path)
+    
+    def _get_cached_encoding(self, file_path: Path) -> Optional[str]:
+        """Get cached encoding for file if available."""
+        signature = self._get_file_signature(file_path)
+        return self.encoding_cache.get(signature)
+    
+    def _cache_encoding(self, file_path: Path, encoding: str):
+        """Cache successful encoding for future use."""
+        signature = self._get_file_signature(file_path)
+        self.encoding_cache[signature] = encoding
     
     def load_csv(self, file_path: Path) -> Tuple[bool, Optional[pd.DataFrame], str]:
         """
@@ -39,15 +72,28 @@ class IncidentDataLoader:
             
             self.logger.info(f"Loading CSV file: {file_path}")
             
+            # NEW: Check encoding cache first
+            cached_encoding = self._get_cached_encoding(file_path)
+            if cached_encoding:
+                try:
+                    df = pd.read_csv(file_path, encoding=cached_encoding, dtype=self.dtype_optimizations)
+                    self.logger.info(f"Used cached encoding {cached_encoding}")
+                    return True, df, f"Success - loaded {len(df)} records with cached {cached_encoding} encoding"
+                except Exception as e:
+                    self.logger.warning(f"Cached encoding {cached_encoding} failed: {e}, trying fallback")
+                    # Continue to encoding detection below
+            
             # Try multiple encodings for robust file loading
             df = None
             successful_encoding = None
             
             for encoding in self.encoding_attempts:
                 try:
-                    df = pd.read_csv(file_path, encoding=encoding)
+                    df = pd.read_csv(file_path, encoding=encoding, dtype=self.dtype_optimizations)
                     successful_encoding = encoding
                     self.logger.info(f"Successfully loaded CSV with {encoding} encoding")
+                    # NEW: Cache successful encoding
+                    self._cache_encoding(file_path, encoding)
                     break
                 except UnicodeDecodeError as e:
                     self.logger.debug(f"Failed to load with {encoding}: {e}")
@@ -62,9 +108,10 @@ class IncidentDataLoader:
             if df.empty:
                 return False, None, "CSV file is empty"
             
-            # Log successful loading
+            # Log successful loading with memory info
+            memory_mb = df.memory_usage(deep=True).sum() / (1024 * 1024)
             self.logger.info(f"Successfully loaded {len(df)} records from {file_path}")
-            self.logger.info(f"Columns found: {list(df.columns)}")
+            self.logger.info(f"Memory usage: {memory_mb:.2f} MB, Columns: {len(df.columns)}")
             
             return True, df, f"Success - loaded {len(df)} records with {successful_encoding} encoding"
             

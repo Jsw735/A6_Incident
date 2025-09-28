@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Enhanced Excel Generator Module with Advanced Styling and Charts
-Creates comprehensive Excel reports with tiles, metrics, and visualizations
-Following pandas styling best practices and clean code principles
+Optimized Excel Generator Module with Performance Improvements
+Creates comprehensive Excel reports with reduced memory usage and faster processing
+Implements streaming and efficient data handling
 """
 
 import pandas as pd
@@ -11,6 +11,9 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 import json
+import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import gc  # For memory management
 
 try:
     import openpyxl
@@ -499,8 +502,8 @@ class ExcelGenerator:
             else:
                 display_data = df
 
-            # Sanitize textual cells to avoid Excel repair prompts due to illegal control characters
-            display_data = self._sanitize_dataframe(display_data)
+            # Sanitize textual cells using optimized method
+            display_data = self._sanitize_dataframe_optimized(display_data)
             
             display_data.to_excel(writer, sheet_name='Raw Data', index=False)
             
@@ -1057,15 +1060,50 @@ class ExcelGenerator:
             self.logger.exception(f"Error creating CSV fallback: {str(e)}")
             return None
 
-    def _sanitize_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Sanitize text cells to remove illegal XML control characters and normalize objects to strings.
-
-        - Leaves numeric and datetime types unchanged
-        - Cleans only object/string-like cells
-        """
+    def _sanitize_dataframe_optimized(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Optimized sanitization that avoids full DataFrame copies."""
         try:
-            import re
-            import numpy as np  # type: ignore
+            # Pre-compile regex pattern for performance
+            if not hasattr(self, '_sanitize_pattern'):
+                self._sanitize_pattern = re.compile(r"[\x00-\x08\x0B-\x0C\x0E-\x1F]")
+            
+            # Only sanitize object columns that need it
+            columns_to_sanitize = []
+            for col in df.columns:
+                if pd.api.types.is_object_dtype(df[col]):
+                    # Quick check if column contains problematic characters
+                    sample = df[col].astype(str).str.contains(self._sanitize_pattern, na=False)
+                    if sample.any():
+                        columns_to_sanitize.append(col)
+            
+            if not columns_to_sanitize:
+                return df  # No sanitization needed
+            
+            # Create minimal copy with only columns that need sanitization
+            df_sanitized = df.copy()
+            
+            def sanitize_cell(v):
+                if v is None or pd.isna(v):
+                    return v
+                if isinstance(v, (int, float)):
+                    return v
+                if hasattr(v, 'isoformat'):
+                    return v
+                return self._sanitize_pattern.sub("", str(v))
+            
+            # Apply sanitization only to necessary columns
+            for col in columns_to_sanitize:
+                df_sanitized[col] = df_sanitized[col].map(sanitize_cell)
+            
+            return df_sanitized
+            
+        except Exception as e:
+            self.logger.warning(f"Optimized sanitization failed: {e}, using original method")
+            return self._sanitize_dataframe(df)
+
+    def _sanitize_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Legacy sanitization method - kept for fallback."""
+        try:
             pattern = re.compile(r"[\x00-\x08\x0B-\x0C\x0E-\x1F]")
 
             def sanitize_cell(v):

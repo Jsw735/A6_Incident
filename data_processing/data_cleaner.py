@@ -19,13 +19,41 @@ class IncidentDataCleaner:
     """
     
     def __init__(self):
-        """Initialize the enhanced data cleaner with comprehensive mapping."""
+        """Initialize the optimized data cleaner with essential mapping."""
         self.logger = logging.getLogger(__name__)
         self.cleaning_stats = {}
         self.validation_rules = self._initialize_validation_rules()
-        self.column_mapping = self._initialize_comprehensive_column_mapping()
+        
+        # NEW: Essential column mapping with O(1) lookup
+        self.column_mapping = self._initialize_essential_column_mapping()
+        self.mapping_lookup = self._build_reverse_lookup()
+    
+    def _initialize_essential_column_mapping(self) -> Dict[str, List[str]]:
+        """Initialize essential column mapping - optimized from 65 to core mappings."""
+        return {
+            # Core columns for metrics (preserve existing functionality)
+            'created_date': ['Created', 'created', 'sys_created_on', 'creation_date'],
+            'resolved_date': ['Resolved', 'resolved', 'resolved_at', 'closed_date'],
+            'assignment_group': ['Assignment Group', 'assigned_group', 'support_team'],
+            'priority': ['Priority', 'Urgency', 'priority_level'],
+            'status': ['State', 'Status', 'incident_status'],
+            'number': ['Number', 'ID', 'incident_number'],
+            'short_description': ['Short Description', 'Summary', 'short_desc']
+        }
+    
+    def _build_reverse_lookup(self) -> Dict[str, str]:
+        """Build reverse lookup table for O(1) column mapping."""
+        lookup = {}
+        for standard_name, variants in self.column_mapping.items():
+            # Add case-insensitive variants
+            for variant in variants:
+                lookup[variant.lower().strip()] = standard_name
+                lookup[variant] = standard_name  # Also add exact match
+        return lookup
     
     def _initialize_comprehensive_column_mapping(self) -> Dict[str, List[str]]:
+        """DEPRECATED: Use _initialize_essential_column_mapping instead."""
+        return self._initialize_essential_column_mapping()
         """Initialize comprehensive column mapping that matches ALL reporter expectations."""
         return {
             # Date columns - CRITICAL for weekly/daily reporters
@@ -112,8 +140,8 @@ class IncidentDataCleaner:
             # Create a copy to avoid modifying original data
             cleaned_df = df.copy()
             
-            # STEP 1: Apply comprehensive column mapping FIRST
-            cleaned_df = self._apply_comprehensive_column_mapping(cleaned_df)
+            # STEP 1: Apply optimized column mapping FIRST
+            cleaned_df = self._apply_optimized_column_mapping(cleaned_df)
             
             # STEP 2: Apply other cleaning operations
             cleaned_df = self._remove_duplicates(cleaned_df)
@@ -143,8 +171,44 @@ class IncidentDataCleaner:
             self.logger.error(error_msg)
             return df
     
+    def _apply_optimized_column_mapping(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Apply optimized O(1) column mapping to standardize column names."""
+        try:
+            mapped_columns = {}
+            columns_mapped = 0
+            
+            self.logger.debug("Starting optimized column mapping")
+            
+            # NEW: Single-pass O(n) mapping using reverse lookup
+            for col in df.columns:
+                # Try exact match first
+                standard_name = self.mapping_lookup.get(col)
+                if not standard_name:
+                    # Try case-insensitive match
+                    standard_name = self.mapping_lookup.get(col.lower().strip())
+                
+                if standard_name and standard_name != col:
+                    mapped_columns[col] = standard_name
+                    columns_mapped += 1
+                    self.logger.debug(f"Mapped: '{col}' -> '{standard_name}'")
+            
+            # Apply the mapping (only if changes needed)
+            if mapped_columns:
+                df = df.rename(columns=mapped_columns)
+                self.cleaning_stats['columns_mapped'] = columns_mapped
+                self.logger.info(f"Successfully mapped {columns_mapped} columns using optimized lookup")
+            else:
+                self.logger.debug("No column mapping needed")
+            
+            return df
+            
+        except Exception as e:
+            self.logger.error(f"Error in optimized column mapping: {str(e)}")
+            return df
+    
     def _apply_comprehensive_column_mapping(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Apply comprehensive column mapping to standardize ALL column names."""
+        """DEPRECATED: Use _apply_optimized_column_mapping instead for better performance."""
+        return self._apply_optimized_column_mapping(df)
         try:
             mapped_columns = {}
             columns_mapped = 0

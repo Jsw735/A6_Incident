@@ -191,8 +191,19 @@ class IncidentMetricsCalculator:
                     'daily_average': temporal_metrics.get('daily_average', 0.0),
                     'weekly_pattern': temporal_metrics.get('weekly_pattern', {}),
                     'monthly_trend': temporal_metrics.get('monthly_trend', 'stable'),
-                    'peak_hours': temporal_metrics.get('peak_hours', [])
-                }
+                    'peak_hours': temporal_metrics.get('peak_hours', []),
+                    # Add comprehensive weekly data for trend analysis
+                    'total_weekly_counts': temporal_metrics.get('total_weekly_counts', {}),
+                    'total_trend_slope': temporal_metrics.get('total_trend_slope', 0.0),
+                    'total_trend_direction': temporal_metrics.get('total_trend_direction', 'stable'),
+                    'total_average_weekly_volume': temporal_metrics.get('total_average_weekly_volume', 0.0),
+                    'total_weeks_analyzed': temporal_metrics.get('total_weeks_analyzed', 0)
+                },
+                
+                # SECTION 6: Executive Ready Metrics (calculated once, no transformations needed)
+                'executive_ready': self._calculate_executive_ready_metrics(
+                    core_metrics, priority_metrics, temporal_metrics, resolution_metrics, assignment_metrics
+                )
             }
             
             # Add calculated totals and derived metrics (no duplication)
@@ -1722,6 +1733,111 @@ class IncidentMetricsCalculator:
                 'category_misclassifications': 0,
                 'defect_detection_rate': 0.0,
                 'total_categories': 0
+            }
+    
+    def _calculate_executive_ready_metrics(self, core_metrics: Dict, priority_metrics: Dict, 
+                                         temporal_metrics: Dict, resolution_metrics: Dict, 
+                                         assignment_metrics: Dict) -> Dict[str, Any]:
+        """Calculate all executive dashboard metrics in ready-to-use format (no transformations needed)."""
+        try:
+            # Extract weekly data and calculate weekly metrics
+            weekly_counts = temporal_metrics.get('total_weekly_counts', {})
+            weeks = sorted(weekly_counts.keys(), reverse=True) if weekly_counts else []
+            
+            current_week = weekly_counts.get(weeks[0], 0) if len(weeks) > 0 else 0
+            last_week = weekly_counts.get(weeks[1], 0) if len(weeks) > 1 else 0  
+            two_weeks_ago = weekly_counts.get(weeks[2], 0) if len(weeks) > 2 else 0
+            
+            # Calculate weekly change percentages
+            weekly_change_pct = 0.0
+            previous_weekly_change_pct = 0.0
+            
+            if last_week > 0:
+                weekly_change_pct = round(((current_week - last_week) / last_week) * 100, 1)
+            if two_weeks_ago > 0:
+                previous_weekly_change_pct = round(((last_week - two_weeks_ago) / two_weeks_ago) * 100, 1)
+                
+            # Determine trend direction
+            trend_direction = 'stable'
+            if weekly_change_pct > 5:
+                trend_direction = 'increasing'
+            elif weekly_change_pct < -5:
+                trend_direction = 'decreasing'
+            
+            # Calculate velocity metrics
+            daily_average = temporal_metrics.get('daily_average', 0)
+            total_weeks = temporal_metrics.get('total_weeks_analyzed', 1)
+            total_daily_avg = core_metrics.get('total_incidents', 0) / max(total_weeks * 7, 1)
+            
+            # Build comprehensive executive-ready metrics
+            return {
+                # Weekly Analysis (ready for direct display)
+                'current_week_count': current_week,
+                'last_week_count': last_week, 
+                'two_weeks_ago_count': two_weeks_ago,
+                'weekly_change_pct': weekly_change_pct,
+                'previous_weekly_change_pct': previous_weekly_change_pct,
+                'weekly_trend_direction': trend_direction,
+                
+                # Priority Summary (ready for dashboard)
+                'priority_summary': {
+                    'high_total': priority_metrics.get('priority_distribution', {}).get('High', 0),
+                    'medium_total': priority_metrics.get('priority_distribution', {}).get('Medium', 0),
+                    'low_total': priority_metrics.get('priority_distribution', {}).get('Low', 0),
+                    'high_open': priority_metrics.get('total_open_high', 0),
+                    'medium_open': priority_metrics.get('total_open_medium', 0),
+                    'low_open': priority_metrics.get('total_open_low', 0),
+                    'high_vs_target': priority_metrics.get('high_vs_target', 0),
+                    'medium_vs_target': priority_metrics.get('medium_vs_target', 0),
+                    'total_target_gap': priority_metrics.get('total_target_gap', 0)
+                },
+                
+                # Velocity Metrics (ready for display)
+                'velocity_summary': {
+                    'open_daily_average': round(daily_average, 1),
+                    'total_daily_average': round(total_daily_avg, 1),
+                    'open_weekly_average': round(daily_average * 7, 1),
+                    'open_incident_count': core_metrics.get('open_incidents', 0)
+                },
+                
+                # Performance Summary (ready for dashboard)
+                'performance_summary': {
+                    'closure_rate': round(core_metrics.get('closure_rate_percentage', 0), 1),
+                    'avg_resolution_days': round(resolution_metrics.get('average_resolution_days', 0), 1),
+                    'sla_compliance_rate': round(resolution_metrics.get('sla_compliance_rate', 0), 1)
+                },
+                
+                # Trend Analysis (ready for display)
+                'trend_summary': {
+                    'total_trend_direction': temporal_metrics.get('total_trend_direction', 'stable'),
+                    'total_trend_slope': temporal_metrics.get('total_trend_slope', 0),
+                    'average_weekly_volume': temporal_metrics.get('total_average_weekly_volume', 0),
+                    'weeks_analyzed': temporal_metrics.get('total_weeks_analyzed', 0)
+                },
+                
+                # Backlog Metrics (ready for dashboard)  
+                'backlog_summary': {
+                    'current_backlog': core_metrics.get('open_incidents', 0),
+                    'total_incidents': core_metrics.get('total_incidents', 0),
+                    'closed_incidents': core_metrics.get('closed_incidents', 0),
+                    'backlog_ratio': round(core_metrics.get('open_incidents', 0) / max(1, core_metrics.get('total_incidents', 1)), 3)
+                }
+            }
+            
+        except Exception as e:
+            # Fallback with basic metrics if calculation fails
+            return {
+                'current_week_count': 0,
+                'last_week_count': 0,
+                'two_weeks_ago_count': 0,
+                'weekly_change_pct': 0.0,
+                'previous_weekly_change_pct': 0.0,
+                'weekly_trend_direction': 'stable',
+                'priority_summary': {'high_total': 0, 'medium_total': 0, 'low_total': 0, 'high_open': 0, 'medium_open': 0, 'low_open': 0, 'high_vs_target': 0, 'medium_vs_target': 0, 'total_target_gap': 0},
+                'velocity_summary': {'open_daily_average': 0, 'total_daily_average': 0, 'open_weekly_average': 0, 'open_incident_count': 0},
+                'performance_summary': {'closure_rate': 0, 'avg_resolution_days': 0, 'sla_compliance_rate': 0},
+                'trend_summary': {'total_trend_direction': 'stable', 'total_trend_slope': 0, 'average_weekly_volume': 0, 'weeks_analyzed': 0},
+                'backlog_summary': {'current_backlog': 0, 'total_incidents': 0, 'closed_incidents': 0, 'backlog_ratio': 0}
             }
 
 

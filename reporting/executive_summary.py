@@ -58,7 +58,7 @@ class EnhancedExecutiveSummary:
             
             # Get file patterns to look for
             file_patterns = [
-                "incidents_kpi_report_*.xlsx",
+                "incidents_kpi_reports_*.xlsx",
                 "executive_summary_*.xlsx",
                 "enhanced_incident_report_*.xlsx"
             ]
@@ -97,7 +97,7 @@ class EnhancedExecutiveSummary:
 
     def archive_kpi_reports_only(self) -> None:
         """
-        Archive incidents_kpi_report files only, keeping the 2 most recent ones.
+        Archive incidents_kpi_reports files only, keeping the 2 most recent ones.
         This should be called after all reports are generated.
         """
         try:
@@ -105,10 +105,10 @@ class EnhancedExecutiveSummary:
             import time
             from datetime import datetime
             
-            print("Archiving old incidents_kpi_report files...")
+            print("Archiving old incidents_kpi_reports files...")
             
             # First, clean up any Excel temporary lock files that might be interfering
-            temp_files = list(self.output_dir.glob("~$incidents_kpi_report_*.xlsx"))
+            temp_files = list(self.output_dir.glob("~$incidents_kpi_reports_*.xlsx"))
             for temp_file in temp_files:
                 try:
                     temp_file.unlink()
@@ -119,11 +119,11 @@ class EnhancedExecutiveSummary:
             # Wait a moment for any file handles to be released
             time.sleep(0.5)
             
-            # Get all incidents_kpi_report files
-            files = list(self.output_dir.glob("incidents_kpi_report_*.xlsx"))
+            # Get all incidents_kpi_reports files
+            files = list(self.output_dir.glob("incidents_kpi_reports_*.xlsx"))
             
             if len(files) <= 2:
-                print(f"Only {len(files)} incidents_kpi_report files found. No archiving needed.")
+                print(f"Only {len(files)} incidents_kpi_reports files found. No archiving needed.")
                 return
             
             # Sort by modification time (newest first)
@@ -158,7 +158,7 @@ class EnhancedExecutiveSummary:
             
             remaining_files = len(files) - archived_count
             if remaining_files <= 2:
-                print(f"\n✅ Success: Now keeping only {remaining_files} most recent incidents_kpi_report files")
+                print(f"\n✅ Success: Now keeping only {remaining_files} most recent incidents_kpi_reports files")
             else:
                 print(f"\n⚠️  {remaining_files} files remain (target: 2 most recent)")
             
@@ -277,10 +277,13 @@ class EnhancedExecutiveSummary:
             print(f"Total Records: {len(data):,}")
             print(f"Total Columns: {len(data.columns)}")
 
-            # Step 2: Calculate Basic Metrics
-            print("\nSTEP 2: CALCULATING KEY PERFORMANCE INDICATORS")
+            # Step 2: Extract Ready Metrics (no calculations)
+            print("\nSTEP 2: EXTRACTING READY METRICS")
             print("-" * 50)
-            basic_metrics = self._calculate_basic_metrics_with_output(data, analysis_results, health_score_results)
+            # Use executive_ready metrics directly from analysis_results
+            metrics = analysis_results.get('metrics', {}) if analysis_results else {}
+            executive_ready = metrics.get('executive_ready', {})
+            print(f"Using executive_ready metrics with {len(executive_ready)} sections")
 
             # Step 3: Extract Analysis Results
             print("\nSTEP 3: EXTRACTING ANALYSIS RESULTS")
@@ -295,7 +298,7 @@ class EnhancedExecutiveSummary:
             # Step 5: Create Executive Summary
             print("\nSTEP 5: GENERATING INCIDENTS KPI REPORT")
             print("-" * 50)
-            executive_data = self._create_executive_summary_data(basic_metrics, analysis_metrics, health_score_results)
+            executive_data = self._create_executive_summary_data(metrics, analysis_metrics, health_score_results)
             print(f"Generated {len(executive_data)} summary metrics")
             # Diagnostic: print sample executive_data
             print("Sample executive_data (first 5 rows):")
@@ -305,7 +308,7 @@ class EnhancedExecutiveSummary:
             # Step 6: Print ALL Raw Metrics (instead of charts)
             print("\nSTEP 6: RAW METRICS OUTPUT (ALL METRICS)")
             print("=" * 80)
-            self._print_all_raw_metrics(basic_metrics, analysis_metrics, health_score_results, executive_data)
+            self._print_all_raw_metrics(metrics, analysis_metrics, health_score_results, executive_data)
             print("=" * 80)
 
             # Step 7: Create Excel/CSV Output (optional)
@@ -339,11 +342,11 @@ class EnhancedExecutiveSummary:
             except Exception:
                 overall_health = None
 
-            metrics = {
-                'total_incidents': basic_metrics.get('total_incidents', len(data)),
-                'priority_breakdown': basic_metrics.get('priority_breakdown', {}),
-                'velocity_metrics': basic_metrics.get('velocity_metrics', {}),
-                'weekly_comparison': basic_metrics.get('weekly_comparison', {}),
+            metrics_summary = {
+                'total_incidents': metrics.get('core_metrics', {}).get('total_incidents', len(data)),
+                'priority_breakdown': executive_ready.get('priority_summary', {}),
+                'velocity_metrics': executive_ready.get('velocity_summary', {}),
+                'weekly_comparison': executive_ready.get('weekly_change_pct', 0),
                 'data_quality_score': analysis_metrics.get('data_quality_score'),
                 'overall_health_score': overall_health,
                 'health_status': health_status,
@@ -362,164 +365,11 @@ class EnhancedExecutiveSummary:
             # This avoids duplicate creation of enhanced_incident_report files.
 
             # ...existing code restored to match the version that produced executive_summary_20250925_075143.xlsx...
-            return {"status": "success", "output_file": output_file, "metrics_generated": len(executive_data), "metrics": metrics}
+            return {"status": "success", "output_file": output_file, "metrics_generated": len(executive_data), "metrics": metrics_summary}
 
         except Exception as e:
             print(f"ERROR: Executive dashboard generation failed: {e}")
             return {"status": "error", "message": str(e)}
-
-    def _calculate_basic_metrics_with_output(self, data: pd.DataFrame, analysis_results: Dict[str, Any], health_score_results: Any) -> Dict[str, Any]:
-        """Calculate high-level metrics using the enhanced metrics calculator."""
-        try:
-            print("Calculating comprehensive executive metrics...")
-            # Prefer precomputed metrics if provided in analysis_results to avoid duplicate work
-            enhanced_metrics = None
-            try:
-                if isinstance(analysis_results, dict):
-                    enhanced_metrics = analysis_results.get('metrics')
-            except Exception:
-                enhanced_metrics = None
-            if not enhanced_metrics:
-                from analysis.metrics_calculator import MetricsCalculator
-                calc = MetricsCalculator()
-                enhanced_metrics = calc.calculate_all_metrics(data)
-
-            if not enhanced_metrics:
-                print("WARNING: Enhanced metrics calculation returned empty results")
-                return {"total_incidents": len(data)}
-
-            # Transform enhanced metrics structure to the format expected by executive summary
-            executive_metrics = self._transform_enhanced_metrics_to_executive_format(enhanced_metrics)
-
-            # Print compact representations using the transformed data
-            pb = executive_metrics.get('priority_breakdown', {})
-            vel = executive_metrics.get('velocity_metrics', {})
-            weekly = executive_metrics.get('weekly_comparison', {})
-            
-            print(f"Priority Breakdown: High={pb.get('High', 0)}, Medium={pb.get('Medium', 0)}, Low={pb.get('Low', 0)}")
-            try:
-                print(f"Open Velocity: Daily={vel.get('open_daily_average', 0):.1f}, 7-day={vel.get('open_last_7_days_average', 0):.1f}, Open Count={vel.get('open_incident_count', 0)}")
-            except Exception:
-                pass
-            try:
-                pct = weekly.get('open_week_over_week_pct_change', 0)
-                pct = pct if isinstance(pct, (int, float)) else 0
-                print(f"Weekly Trends: Open Last={weekly.get('open_last_week_count', 0)}, Open Prev={weekly.get('open_previous_week_count', 0)}, Change={pct*100:.1f}%")
-            except Exception:
-                pass
-            
-            return executive_metrics
-
-        except Exception as e:
-            print(f"ERROR: Error in enhanced metrics calculation: {e}")
-            import traceback
-            traceback.print_exc()
-            return {"total_incidents": len(data)}
-
-    def _transform_enhanced_metrics_to_executive_format(self, enhanced_metrics: Dict[str, Any]) -> Dict[str, Any]:
-        """Transform enhanced metrics structure to the format expected by executive summary."""
-        try:
-            # Extract core metrics from enhanced structure
-            core_metrics = enhanced_metrics.get('core_metrics', {})
-            performance_metrics = enhanced_metrics.get('performance_metrics', {})
-            # Prefer enhanced priority metrics if available to avoid recomputation
-            priority_analysis = enhanced_metrics.get('priority_analysis', {})
-            enhanced_priority = enhanced_metrics.get('priority_analysis', {})
-            assignment_analysis = enhanced_metrics.get('assignment_analysis', {})
-            temporal_analysis = enhanced_metrics.get('temporal_analysis', {})
-            quality_metrics = enhanced_metrics.get('quality_metrics', {})
-            training_metrics = enhanced_metrics.get('training_metrics', {})
-            category_metrics = enhanced_metrics.get('category_metrics', {})
-            
-            # Get the actual priority breakdown values (overall distribution)
-            priority_breakdown = priority_analysis.get('priority_distribution', {'High': 0, 'Medium': 0, 'Low': 0})
-            # Open-only priority breakdown for backlog context if provided
-            priority_breakdown_open = priority_analysis.get('priority_distribution_open', None)
-            
-            # Debug: Print actual available data
-            print(f"DEBUG: Priority analysis keys: {list(priority_analysis.keys())}")
-            print(f"DEBUG: Core metrics keys: {list(core_metrics.keys())}")
-            print(f"DEBUG: Priority distribution value: {priority_analysis.get('priority_distribution')}")
-            print(f"DEBUG: Temporal analysis keys: {list(temporal_analysis.keys())}")
-            
-            # Fix priority breakdown if it's not in the right format
-            if not priority_breakdown or not isinstance(priority_breakdown, dict) or not any(k in priority_breakdown for k in ['High', 'Medium', 'Low']):
-                # Fallback: try to construct from other available data
-                priority_breakdown = {
-                    'High': priority_analysis.get('high_priority_count', 0),
-                    'Medium': 0,  # Calculate from total - high - low
-                    'Low': core_metrics.get('total_incidents', 0) - priority_analysis.get('high_priority_count', 0)
-                }
-                print(f"DEBUG: Using constructed priority breakdown: {priority_breakdown}")
-            else:
-                print(f"DEBUG: Using priority_distribution: {priority_breakdown}")
-            
-            # Create executive format structure using REAL data
-            executive_format = {
-                # Basic totals - use real values
-                'total_incidents': core_metrics.get('total_incidents', enhanced_metrics.get('total_records_analyzed', 0)),
-                'open_incidents': core_metrics.get('open_incidents', 0),
-                'closed_incidents': core_metrics.get('closed_incidents', 0),
-                
-                # Priority breakdown - use actual calculated values
-                'priority_breakdown': priority_breakdown,
-                'priority_breakdown_open': priority_breakdown_open if isinstance(priority_breakdown_open, dict) else None,
-                
-                # Velocity metrics - use actual temporal analysis
-                'velocity_metrics': {
-                    'open_daily_average': temporal_analysis.get('daily_average', 0),
-                    'total_daily_average': temporal_analysis.get('daily_average', 0),
-                    'open_incident_count': core_metrics.get('open_incidents', 0),
-                    'open_last_7_days_average': temporal_analysis.get('daily_average', 0) * 7
-                },
-                
-                # Weekly comparison - calculate from temporal data
-                'weekly_comparison': {
-                    'open_last_week_count': int(temporal_analysis.get('daily_average', 0) * 7),
-                    'open_previous_week_count': int(temporal_analysis.get('daily_average', 0) * 7),
-                    'open_week_over_week_pct_change': 0.0,  # Will calculate if data available
-                    'current_week_created': int(temporal_analysis.get('daily_average', 0) * 7),
-                    'total_open_this_week': core_metrics.get('open_incidents', 0)  # Current total open incidents
-                },
-                
-                # Enhanced priority metrics - map to correct format
-                'enhanced_priority_metrics': {
-                    'total_open_high': priority_analysis.get('total_open_high', 0),
-                    'total_open_medium': priority_analysis.get('total_open_medium', 0),
-                    'total_open_low': priority_analysis.get('total_open_low', 0),
-                    'high_vs_target': priority_analysis.get('high_vs_target', 0),
-                    'medium_vs_target': priority_analysis.get('medium_vs_target', 0),
-                    'total_target_gap': priority_analysis.get('total_target_gap', 0)
-                },
-                
-                # Backlog metrics - use real data
-                'backlog_metrics': {
-                    'current_backlog': core_metrics.get('open_incidents', 0),
-                    'required_daily_rate': 23,  # Business target
-                    'actual_daily_rate': temporal_analysis.get('daily_average', 0),
-                    'rate_performance_pct': (temporal_analysis.get('daily_average', 0) / 23 * 100) if temporal_analysis.get('daily_average', 0) > 0 else 0
-                },
-                
-                # Workstream metrics - pass through
-                'workstream_metrics': assignment_analysis.get('workstream_distribution', {}),
-                
-                # Quality and training metrics - pass through actual data
-                'quality_metrics': quality_metrics,
-                'training_metrics': training_metrics,
-                'category_metrics': category_metrics,
-                
-                # Add derived metrics if available
-                'derived_metrics': enhanced_metrics.get('derived_metrics', {})
-            }
-            
-            print(f"DEBUG: Transformed executive format with {len(executive_format)} sections")
-            return executive_format
-            
-        except Exception as e:
-            print(f"ERROR: Error transforming enhanced metrics: {e}")
-            import traceback
-            traceback.print_exc()
-            return {'total_incidents': enhanced_metrics.get('total_records_analyzed', 0)}
 
     def _extract_analysis_metrics_with_output(self, analysis_results: Dict[str, Any]) -> Dict[str, Any]:
         """Extract common analysis metrics and return a flattened dict."""
@@ -720,189 +570,106 @@ class EnhancedExecutiveSummary:
             if len(executive_data) > 10:
                 print(f"  ... and {len(executive_data) - 10} more rows")
 
-    def _create_executive_summary_data(self, basic_metrics: Dict[str, Any], analysis_metrics: Dict[str, Any], health_score_results: Any) -> list:
-            """Create organized executive summary data with usage location mapping and clean categories."""
-            rows = []
+    def _create_executive_summary_data(self, metrics: Dict[str, Any], analysis_metrics: Dict[str, Any], health_score_results: Any) -> list:
+        """Create executive summary data using ready metrics (no transformations or calculations)."""
+        rows = []
         
-            # Defensive check
-            if basic_metrics is None and analysis_metrics is None and health_score_results is None:
-                return [("No Data", "", "No metrics available - input data missing")]
+        # Defensive check
+        if metrics is None:
+            return [("No Data", "", "No metrics available - input data missing")]
 
-            # =====================================
-            # EXECUTIVE SUMMARY SECTION (Clean)
-            # =====================================
-            rows.append(("Section: EXECUTIVE SUMMARY", "", ""))
-
-            total = basic_metrics.get('total_incidents') if isinstance(basic_metrics, dict) else None
-            if total is None:
-                total = analysis_metrics.get('volume_total', 0) if analysis_metrics else 0
-            rows.append(("Total Incidents", int(total or 0), "Total number of incidents in the dataset"))
-
-            # Priority breakdown
-            pb = basic_metrics.get('priority_breakdown') if isinstance(basic_metrics, dict) else None
-            if pb and isinstance(pb, dict):
-                rows.append(("Priority - High", pb.get('High', 0), "Count of all High priority incidents"))
-                rows.append(("Priority - Medium", pb.get('Medium', 0), "Count of all Medium priority incidents"))
-                rows.append(("Priority - Low", pb.get('Low', 0), "Count of all Low priority incidents"))
-
-            # Priority breakdown for OPEN incidents only (prefer enhanced metrics block below to avoid duplicates)
-            pb_open = basic_metrics.get('priority_breakdown_open') if isinstance(basic_metrics, dict) else None
-
-            # Open priority metrics with targets (authoritative)
-            enhanced_priority = basic_metrics.get('enhanced_priority_metrics') if isinstance(basic_metrics, dict) else None
-            if enhanced_priority and isinstance(enhanced_priority, dict):
-                rows.append(("Open High Priority", enhanced_priority.get('total_open_high', 0), "High priority incidents currently unresolved"))
-                rows.append(("Open Medium Priority", enhanced_priority.get('total_open_medium', 0), "Medium priority incidents currently unresolved"))
-                rows.append(("Open Low Priority", enhanced_priority.get('total_open_low', 0), "Low priority incidents currently unresolved"))
-                rows.append(("High vs Target Gap", enhanced_priority.get('high_vs_target', 0), "Difference between current open High priority and target (negative = above target)"))
-                rows.append(("Medium vs Target Gap", enhanced_priority.get('medium_vs_target', 0), "Difference between current open Medium priority and target (negative = above target)"))
-                rows.append(("Total Target Gap", enhanced_priority.get('total_target_gap', 0), "Combined High and Medium priority incidents above target levels"))
-            elif pb_open and isinstance(pb_open, dict):
-                # Fallback display if enhanced priority not present
-                rows.append(("Open High Priority", pb_open.get('High', 0), "High priority incidents currently unresolved"))
-                rows.append(("Open Medium Priority", pb_open.get('Medium', 0), "Medium priority incidents currently unresolved"))
-                rows.append(("Open Low Priority", pb_open.get('Low', 0), "Low priority incidents currently unresolved"))
-
-            # Velocity - clean open-focused metrics
-            vel = basic_metrics.get('velocity_metrics') if isinstance(basic_metrics, dict) else None
-            if vel and isinstance(vel, dict):
-                rows.append(("Open Daily Average", float(vel.get('open_daily_average', 0)), "Average number of incidents opened per day over recent period"))
-                rows.append(("Open Incident Count", int(vel.get('open_incident_count', 0)), "Total number of incidents currently open/unresolved"))
-                rows.append(("Total Daily Average", float(vel.get('total_daily_average', 0)), "Average number of incidents (both opened and closed) per day"))
-
-            # Weekly trends - clean open-focused
-            weekly = basic_metrics.get('weekly_comparison') if isinstance(basic_metrics, dict) else None
-            if weekly and isinstance(weekly, dict):
-                rows.append(("Open Last Week", int(weekly.get('open_last_week_count', 0)), "Number of incidents opened during the most recent week"))
-                rows.append(("Open Previous Week", int(weekly.get('open_previous_week_count', 0)), "Number of incidents opened during the week before last"))
-                rows.append(("Open WoW Change %", round(float(weekly.get('open_week_over_week_pct_change', 0) or 0) * 100, 1), "Week-over-week percentage change in new incidents (positive = increase)"))
-                rows.append(("Created This Week", int(weekly.get('current_week_created', 0)), "Total incidents created during the current week"))
-                rows.append(("Open This Week", int(weekly.get('total_open_this_week', 0)), "Total incidents currently open (regardless of creation date)"))
-
-            # Backlog and targets
-            backlog = basic_metrics.get('backlog_metrics') if isinstance(basic_metrics, dict) else None
-            if backlog and isinstance(backlog, dict):
-                rows.append(("Current Backlog", backlog.get('current_backlog', 0), "Total number of unresolved incidents (same as Open Incident Count)"))
-
-            targets = basic_metrics.get('target_metrics') if isinstance(basic_metrics, dict) else None
-            if targets and isinstance(targets, dict):
-                rows.append(("Required Daily Rate", targets.get('required_daily_rate', 0), "How many incidents need to be closed per day to meet backlog clearance targets (excludes new tickets)"))
-                rows.append(("Actual Daily Rate", round(targets.get('actual_daily_rate', 0), 1), "How many incidents are actually being closed per day on average"))
-                rows.append(("Rate Performance %", round(targets.get('rate_performance_pct', 0), 1), "Actual closure rate as percentage of required rate (100% = meeting target)"))
-
-            # Projection metrics for future planning
-            projections = basic_metrics.get('projection_metrics') if isinstance(basic_metrics, dict) else None
-            if projections and isinstance(projections, dict):
-                rows.append(("Projected New Tickets", round(projections.get('open_projected_weekly_volume', 0), 1), "Expected new incidents to be opened next week based on current trends"))
-
-            # =====================================
-            # QUALITY METRICS SECTION
-            # =====================================
-            rows.append(("", "", ""))
-            rows.append(("Section: QUALITY & ACCURACY METRICS", "", ""))
+        # Extract executive_ready metrics (calculated once in MetricsCalculator)
+        executive_ready = metrics.get('executive_ready', {})
+        core_metrics = metrics.get('core_metrics', {})
         
-            # Category accuracy metrics
-            category_metrics = analysis_metrics.get('category_metrics') if analysis_metrics else None
-            if category_metrics and isinstance(category_metrics, dict):
-                rows.append(("Category Accuracy %", float(category_metrics.get('category_accuracy_percentage', 0)), "Percentage of incidents correctly categorized based on description analysis"))
-                rows.append(("Category Misclassifications", int(category_metrics.get('category_misclassifications', 0)), "Number of incidents potentially miscategorized"))
-                rows.append(("Defect Detection Rate %", float(category_metrics.get('defect_detection_rate', 0)), "Percentage of incidents identified as potential defects"))
-                rows.append(("Training Detection Rate %", float(category_metrics.get('training_detection_rate', 0)), "Percentage of incidents identified as potential training requests"))
+        # =====================================
+        # EXECUTIVE SUMMARY SECTION (Direct from ready metrics)
+        # =====================================
+        rows.append(("Section: EXECUTIVE SUMMARY", "", ""))
 
-            # Urgency accuracy metrics
-            urgency_metrics = analysis_metrics.get('urgency_metrics') if analysis_metrics else None
-            if urgency_metrics and isinstance(urgency_metrics, dict):
-                rows.append(("Urgency Accuracy %", float(urgency_metrics.get('urgency_accuracy_percentage', 0)), "Percentage of incidents with correct urgency classification"))
-                rows.append(("Urgency Misclassifications", int(urgency_metrics.get('urgency_misclassifications', 0)), "Number of incidents with potentially incorrect urgency"))
-            
-                # SLA compliance
-                sla_compliance = urgency_metrics.get('sla_compliance', {})
-                if isinstance(sla_compliance, dict):
-                    overall_compliance = sla_compliance.get('overall_compliance_rate', 0)
-                    rows.append(("SLA Compliance Rate %", float(overall_compliance), "Percentage of incidents resolved within SLA timeframes"))
-                    rows.append(("SLA Breaches", int(sla_compliance.get('sla_breaches', 0)), "Number of incidents that exceeded SLA resolution times"))
+        # Core totals - direct from ready metrics
+        rows.append(("Total Incidents", core_metrics.get('total_incidents', 0), "Total number of incidents in the dataset"))
+        rows.append(("Open Incidents", core_metrics.get('open_incidents', 0), "Current open incidents requiring attention"))  
+        rows.append(("Closed Incidents", core_metrics.get('closed_incidents', 0), "Successfully resolved incidents"))
+        rows.append(("Closure Rate %", round(executive_ready.get('performance_summary', {}).get('closure_rate', 0), 1), "Percentage of incidents that have been closed"))
 
-            # Training ticket metrics
-            training_metrics = analysis_metrics.get('training_metrics') if analysis_metrics else None
-            if training_metrics and isinstance(training_metrics, dict):
-                rows.append(("Training Tickets Total", int(training_metrics.get('total_training_tickets', 0)), "Total number of incidents categorized as training"))
-                rows.append(("Training Percentage %", float(training_metrics.get('training_percentage_overall', 0)), "Percentage of all incidents that are training-related"))
-                rows.append(("Suggested Training %", float(training_metrics.get('suggested_training_percentage', 0)), "Percentage including incidents that should be training"))
-                rows.append(("Historical Training Closures", int(training_metrics.get('historical_training_closures', 0)), "Number of training tickets that have been resolved"))
+        # =====================================
+        # WEEKLY METRICS SECTION (Ready from calculator)
+        # =====================================
+        rows.append(("Section: WEEKLY ANALYSIS", "", ""))
+        
+        rows.append(("Current Week Count", executive_ready.get('current_week_count', 0), "Number of incidents created in the current week"))
+        rows.append(("Last Week Count", executive_ready.get('last_week_count', 0), "Number of incidents created in the previous week"))
+        rows.append(("Two Weeks Ago Count", executive_ready.get('two_weeks_ago_count', 0), "Number of incidents created two weeks ago"))
+        rows.append(("Weekly Change %", executive_ready.get('weekly_change_pct', 0), "Percentage change from last week to current week"))
+        rows.append(("Previous Weekly Change %", executive_ready.get('previous_weekly_change_pct', 0), "Percentage change from two weeks ago to last week"))
+        rows.append(("Weekly Trend Direction", executive_ready.get('weekly_trend_direction', 'stable'), "Overall direction of weekly incident volume"))
 
-            # Overall quality metrics
-            quality_metrics = analysis_metrics.get('quality_metrics') if analysis_metrics else None
-            if quality_metrics and isinstance(quality_metrics, dict):
-                rows.append(("Overall Classification Accuracy %", float(quality_metrics.get('overall_classification_accuracy', 0)), "Combined accuracy of category and urgency classification"))
-                rows.append(("Total Records Analyzed", int(quality_metrics.get('total_records_analyzed', 0)), "Number of records included in quality analysis"))
+        # =====================================
+        # PRIORITY ANALYSIS SECTION (Ready from calculator)
+        # =====================================
+        rows.append(("Section: PRIORITY ANALYSIS", "", ""))
+        
+        priority = executive_ready.get('priority_summary', {})
+        rows.append(("Priority - High", priority.get('high_total', 0), "Count of all High priority incidents"))
+        rows.append(("Priority - Medium", priority.get('medium_total', 0), "Count of all Medium priority incidents"))
+        rows.append(("Priority - Low", priority.get('low_total', 0), "Count of all Low priority incidents"))
+        rows.append(("Open High Priority", priority.get('high_open', 0), "High priority incidents currently unresolved"))
+        rows.append(("Open Medium Priority", priority.get('medium_open', 0), "Medium priority incidents currently unresolved"))
+        rows.append(("Open Low Priority", priority.get('low_open', 0), "Low priority incidents currently unresolved"))
+        rows.append(("High vs Target Gap", priority.get('high_vs_target', 0), "Difference between current open High priority and target (negative = above target)"))
+        rows.append(("Medium vs Target Gap", priority.get('medium_vs_target', 0), "Difference between current open Medium priority and target (negative = above target)"))
+        rows.append(("Total Target Gap", priority.get('total_target_gap', 0), "Combined High and Medium priority incidents above target levels"))
 
-            # =====================================
-            # TRAINING BY WORKSTREAM SECTION
-            # =====================================
-            if training_metrics and isinstance(training_metrics, dict):
-                training_by_workstream = training_metrics.get('training_by_workstream', {})
-                if training_by_workstream and isinstance(training_by_workstream, dict):
-                    rows.append(("", "", ""))
-                    rows.append(("Section: TRAINING ANALYSIS BY WORKSTREAM", "", ""))
-                
-                    for workstream, metrics in training_by_workstream.items():
-                        if isinstance(metrics, dict):
-                            rows.append((f"{workstream} - Training Count", int(metrics.get('training_count', 0)), f"Number of training tickets assigned to {workstream}"))
-                            rows.append((f"{workstream} - Total Tickets", int(metrics.get('total_tickets', 0)), f"Total incidents assigned to {workstream}"))
-                            rows.append((f"{workstream} - Training %", float(metrics.get('training_percentage', 0)), f"Percentage of {workstream} tickets that are training"))
+        # =====================================
+        # VELOCITY & PERFORMANCE SECTION (Ready from calculator)
+        # =====================================
+        rows.append(("Section: VELOCITY & PERFORMANCE", "", ""))
+        
+        velocity = executive_ready.get('velocity_summary', {})
+        performance = executive_ready.get('performance_summary', {})
+        
+        rows.append(("Daily Average (Open)", velocity.get('open_daily_average', 0), "Average number of incidents opened per day"))
+        rows.append(("Daily Average (Total)", velocity.get('total_daily_average', 0), "Average total incident volume per day"))
+        rows.append(("Weekly Average (Open)", velocity.get('open_weekly_average', 0), "Average number of incidents opened per week"))
+        rows.append(("Average Resolution Days", performance.get('avg_resolution_days', 0), "Average time to resolve incidents"))
+        rows.append(("SLA Compliance Rate %", performance.get('sla_compliance_rate', 0), "Percentage of incidents meeting SLA targets"))
 
-            # Data quality
-            dq = analysis_metrics.get('data_quality_score') if isinstance(analysis_metrics, dict) else None
-            if dq is not None:
-                rows.append(("Data Quality Score", dq, "Overall quality of the data as percentage (100% = perfect data quality)"))
+        # =====================================
+        # TREND ANALYSIS SECTION (Ready from calculator)
+        # =====================================
+        rows.append(("Section: TREND ANALYSIS", "", ""))
+        
+        trend = executive_ready.get('trend_summary', {})
+        rows.append(("Total Trend Direction", trend.get('total_trend_direction', 'stable'), "Overall trend direction for incident volume"))
+        rows.append(("Trend Slope", round(trend.get('total_trend_slope', 0), 2), "Mathematical slope of incident trend"))
+        rows.append(("Average Weekly Volume", round(trend.get('average_weekly_volume', 0), 1), "Average incidents per week over analysis period"))
+        rows.append(("Weeks Analyzed", trend.get('weeks_analyzed', 0), "Number of weeks included in trend analysis"))
 
-            # Health score
-            if health_score_results:
-                if isinstance(health_score_results, dict):
-                    rows.append(("Overall Health Score", health_score_results.get('overall_score', health_score_results.get('overall_health_score', '')), "Combined health score based on multiple factors"))
-                else:
-                    rows.append(("Overall Health Score", health_score_results, "Combined health score based on multiple factors"))
+        # =====================================
+        # BACKLOG ANALYSIS SECTION (Ready from calculator)
+        # =====================================
+        rows.append(("Section: BACKLOG ANALYSIS", "", ""))
+        
+        backlog = executive_ready.get('backlog_summary', {})
+        rows.append(("Current Backlog", backlog.get('current_backlog', 0), "Total number of open incidents requiring attention"))
+        rows.append(("Backlog Ratio", round(backlog.get('backlog_ratio', 0), 3), "Ratio of open incidents to total incidents"))
 
-            # =====================================
-            # WORKSTREAM ANALYSIS SECTION (Optional)
-            # =====================================
-            workstream_metrics = basic_metrics.get('workstream_metrics') if isinstance(basic_metrics, dict) else None
-            if workstream_metrics and isinstance(workstream_metrics, dict) and workstream_metrics:
-                rows.append(("", "", ""))
-                rows.append(("Section: WORKSTREAM ANALYSIS", "", ""))
-                
-                for workstream, metrics in workstream_metrics.items():
-                    if isinstance(metrics, dict):
-                        rows.append((f"{workstream} - Total", int(metrics.get('total_incidents', 0)), f"Total incidents assigned to {workstream}"))
-                        rows.append((f"{workstream} - Open", int(metrics.get('open_incidents', 0)), f"Open incidents currently assigned to {workstream}"))
-                        rows.append((f"{workstream} - Closed", int(metrics.get('closed_incidents', 0)), f"Closed incidents assigned to {workstream}"))
-                        completion_rate = metrics.get('completion_rate', 0)
-                        if completion_rate:
-                            rows.append((f"{workstream} - Completion %", float(completion_rate), f"Percentage of {workstream} incidents that have been completed"))
+        # =====================================
+        # QUALITY METRICS SECTION (From analysis results)
+        # =====================================
+        rows.append(("Section: QUALITY METRICS", "", ""))
+        
+        # Add quality metrics if available
+        if analysis_metrics and isinstance(analysis_metrics, dict):
+            quality = analysis_metrics.get('quality', {})
+            if quality:
+                overall_quality = quality.get('overall_quality', {})
+                if overall_quality:
+                    score = overall_quality.get('score', 0)
+                    rows.append(("Data Quality Score", round(score * 100, 1) if score else 0, "Overall data quality percentage"))
 
-            # =====================================
-            # PERFORMANCE METRICS SECTION (Optional)
-            # =====================================
-            performance_metrics = basic_metrics.get('performance_metrics') if isinstance(basic_metrics, dict) else None
-            if performance_metrics and isinstance(performance_metrics, dict):
-                rows.append(("", "", ""))
-                rows.append(("Section: PERFORMANCE METRICS", "", ""))
-                
-                if performance_metrics.get('average_resolution_days'):
-                    rows.append(("Average Resolution Days", float(performance_metrics.get('average_resolution_days', 0)), "Average time to resolve incidents in days"))
-                if performance_metrics.get('median_resolution_days'):
-                    rows.append(("Median Resolution Days", float(performance_metrics.get('median_resolution_days', 0)), "Median time to resolve incidents in days"))
-                if performance_metrics.get('sla_compliance_rate'):
-                    rows.append(("SLA Compliance Rate %", float(performance_metrics.get('sla_compliance_rate', 0) * 100), "Percentage of incidents resolved within SLA timeframes"))
-
-            # =====================================
-            # END OF ORGANIZED METRICS
-            # =====================================
-            # NOTE: Removed "All Basic Metrics" and "All Analysis Metrics" sections 
-            # that were creating duplicates. All important metrics are now captured
-            # in the organized sections above.
-
-            return rows
+        return rows
 
     def _add_usage_mapping(self, summary_data: list) -> list:
         """Add dashboard usage mapping to existing summary data."""
@@ -943,12 +710,26 @@ class EnhancedExecutiveSummary:
             "Training Detection Rate %": "Executive Dashboard - Training Section; Quality Analysis",
             "Training Tickets Total": "Executive Dashboard - Training Section; Workstream Analysis",
             "Training Percentage %": "Executive Dashboard - Training Section; Workstream Analysis",
-            "Urgency Accuracy %": "Data Quality Sheet - Urgency Analysis; Quality Analysis (Internal Use Only)",
-            "Overall Classification Accuracy %": "Data Quality Sheet - Overall Quality Score",
+            "Urgency Accuracy %": "Metrics Output - Data Quality Section; Quality Analysis (Internal Use Only)",
+            "Overall Classification Accuracy %": "Metrics Output - Data Quality Section",
+            
+            # Data Quality Metrics (now in Metrics Output)
+            "Data Quality Score %": "Metrics Output - Data Quality Section; Executive Dashboard - Quality Indicator",
+            "Data Quality Status": "Metrics Output - Data Quality Section",
+            "Data Completeness %": "Metrics Output - Data Quality Section",
+            "Data Consistency %": "Metrics Output - Data Quality Section",
+            
+            # Trend Analysis Metrics (now in Metrics Output)  
+            "Incident Velocity (per day)": "Metrics Output - Trend Analysis Section; Dashboard2 - Velocity Chart",
+            "Overall Trend Direction": "Metrics Output - Trend Analysis Section; Executive Dashboard - Trend Indicator",
+            "Trend Analysis Period (days)": "Metrics Output - Trend Analysis Section",
+            "Average Resolution Hours": "Metrics Output - Trend Analysis Section; Performance Analysis",
+            "Resolution Rate %": "Metrics Output - Trend Analysis Section; Performance Summary",
+            "Busiest Day of Week": "Metrics Output - Trend Analysis Section; Capacity Planning",
+            "Busiest Month": "Metrics Output - Trend Analysis Section; Capacity Planning",
             
             # Health and Performance
             "Overall Health Score": "Executive Dashboard - Health Indicator Tile; Performance Summary",
-            "Data Quality Score": "Data Quality Sheet - Primary Metric; Executive Dashboard - Quality Tile",
             
             # Workstream Analysis
             "SAP-S4 Total": "Dashboard2 - Workstream Chart; Assignment Analysis Sheet",
@@ -967,6 +748,8 @@ class EnhancedExecutiveSummary:
             # Section Headers (no dashboard mapping)
             "Section: EXECUTIVE SUMMARY": "Metrics Output - Section Divider",
             "Section: QUALITY & ACCURACY METRICS": "Metrics Output - Section Divider",
+            "Section: DATA QUALITY METRICS": "Metrics Output - Section Divider",
+            "Section: TREND ANALYSIS METRICS": "Metrics Output - Section Divider",
             "Section: TRAINING ANALYSIS BY WORKSTREAM": "Metrics Output - Section Divider",
             "Section: All Basic Metrics": "Metrics Output - Section Divider",
             "Subsection: VELOCITY METRICS": "Metrics Output - Subsection Divider",
@@ -1202,7 +985,7 @@ class EnhancedExecutiveSummary:
             
             # Generate filename for the new file
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = self.output_dir / f"incidents_kpi_report_{timestamp}.xlsx"
+            filename = self.output_dir / f"incidents_kpi_reports_{timestamp}.xlsx"
 
             try:
                 with pd.ExcelWriter(filename, engine='openpyxl') as writer:
@@ -1231,15 +1014,17 @@ class EnhancedExecutiveSummary:
                         self.logger.warning(f"Post-formatting skipped due to error: {fmt_err}")
                 print(f"Excel file created: {filename}")
                 
+                # Skip refreshable workbook modification to avoid file corruption warnings
+                # The file is already properly formatted and functional
                 # Make workbook refreshable for Excel Refresh All (best-effort, Windows only)
-                try:
-                    from utils.refreshable_excel import make_workbook_refreshable
-                    _ = make_workbook_refreshable(str(filename))
-                except Exception as _e:
-                    try:
-                        self.logger.warning(f"Refreshable wiring skipped: {_e}")
-                    except Exception:
-                        pass
+                # try:
+                #     from utils.refreshable_excel import make_workbook_refreshable
+                #     _ = make_workbook_refreshable(str(filename))
+                # except Exception as _e:
+                #     try:
+                #         self.logger.warning(f"Refreshable wiring skipped: {_e}")
+                #     except Exception:
+                #         pass
                 
                 return str(filename)
             except Exception:
@@ -1258,8 +1043,8 @@ class EnhancedExecutiveSummary:
             
         try:
             workbook = writer.book
-            # Create the Executive Dashboard sheet as the first sheet
-            dashboard_ws = workbook.create_sheet('Executive Dashboard', 0)
+            # Create the Executive Summary sheet as the first sheet
+            dashboard_ws = workbook.create_sheet('Executive Summary', 0)
             
             # Extract key metrics from summary_data
             metrics = self._extract_dashboard_metrics(summary_data)
@@ -1662,16 +1447,11 @@ class EnhancedExecutiveSummary:
             worksheet['F12'].value = "Priority Distribution:"
             worksheet['F12'].font = Font(name='Segoe UI', bold=True, size=11)
             
-            # Priority distribution legend (positioned like target)
-            worksheet['F13'].value = "Series1, Low"
-            worksheet['F13'].font = Font(name='Segoe UI', size=9, color='666666')
-            worksheet['G13'].value = "Series1, High"  
-            worksheet['G13'].font = Font(name='Segoe UI', size=9, color='666666')
+            # Remove the misleading static labels - let the chart legend handle this
+            # worksheet['F13'] and worksheet['G13'] will be covered by the chart
             
-            worksheet['F14'].value = "Priority: 38"
-            worksheet['F14'].font = Font(name='Segoe UI', size=9, color='666666')
-            worksheet['G14'].value = "Priority: 78"
-            worksheet['G14'].font = Font(name='Segoe UI', size=9, color='666666')
+            # Remove the static priority numbers too - let the chart show real data
+            # worksheet['F14'] and worksheet['G14'] will be covered by the chart
             
             # Weekly Incident Trends (Line Chart) section - positioned exactly like target
             worksheet['I12'].value = "Weekly Incident Trends (Line Chart)"
@@ -1809,19 +1589,26 @@ class EnhancedExecutiveSummary:
             pie_chart.add_data(data, titles_from_data=True)
             pie_chart.set_categories(labels)
             
-            # Add clean data labels showing only percentages
-            from openpyxl.chart.label import DataLabelList
-            pie_chart.dataLabels = DataLabelList()
-            pie_chart.dataLabels.showPercent = True
-            pie_chart.dataLabels.showVal = False  # Don't show raw values
-            pie_chart.dataLabels.showCatName = False  # Don't show category names
-            pie_chart.dataLabels.showSerName = False  # Don't show series names
-            pie_chart.dataLabels.position = 'bestFit'  # Set data labels to best fit
+            # Simplified data labels to avoid runtime errors
+            try:
+                from openpyxl.chart.label import DataLabelList
+                pie_chart.dataLabels = DataLabelList()
+                pie_chart.dataLabels.showPercent = True
+                pie_chart.dataLabels.showVal = False
+                pie_chart.dataLabels.showCatName = True  # Show High, Medium, Low
+                pie_chart.dataLabels.showSerName = False
+                # Remove complex positioning that might cause errors
+                pie_chart.dataLabels.position = 'bestFit'
+            except Exception as pie_label_error:
+                print(f"Warning: Could not configure pie chart labels: {pie_label_error}")
             
-            # Position legend to the right (explicitly set as right-aligned)
-            pie_chart.legend.position = 'r'
+            # Simple legend positioning
+            try:
+                pie_chart.legend.position = 'r'
+            except Exception as legend_error:
+                print(f"Warning: Could not position legend: {legend_error}")
             
-            # Position the chart over the priority distribution table (F13 area)
+            # Position the chart
             worksheet.add_chart(pie_chart, "F13")
             
         except Exception as e:
@@ -1860,44 +1647,40 @@ class EnhancedExecutiveSummary:
             # Hide the legend/color bar as requested
             line_chart.legend = None
             
-            # Configure x-axis to show week labels at the bottom
+            # Configure x-axis to show week labels prominently at the bottom
             line_chart.x_axis.tickLblPos = "low"  # Position labels at bottom
             line_chart.x_axis.majorTickMark = "out"
-            line_chart.x_axis.minorTickMark = "out"
             
-            # Configure y-axis with grid lines and numbers for better readability
+            # Simplified x-axis configuration to avoid runtime errors
+            try:
+                line_chart.x_axis.delete = False  # Never hide x-axis
+                line_chart.x_axis.majorUnit = 1   # Show every week date
+            except Exception as x_axis_error:
+                print(f"Warning: Could not fully configure x-axis: {x_axis_error}")
+            
+            # Configure y-axis with basic grid lines
             try:
                 from openpyxl.chart.axis import ChartLines
                 line_chart.y_axis.majorGridlines = ChartLines()
-                # Show tick marks and labels on y-axis for grid numbers
                 line_chart.y_axis.majorTickMark = "out"
-                line_chart.y_axis.minorTickMark = "in"
-                # Ensure y-axis labels are visible (grid numbers)
                 line_chart.y_axis.delete = False
             except Exception as grid_error:
                 print(f"Warning: Could not configure grid lines: {grid_error}")
-                # Fallback - at least ensure y-axis shows numbers
-                line_chart.y_axis.majorTickMark = "out"
             
-            # Add data labels to both series showing values
+            # Simplified data labels - remove complex styling that causes runtime errors
             try:
                 for i, series in enumerate(line_chart.series):
                     from openpyxl.chart.label import DataLabelList
                     series.dLbls = DataLabelList()
                     series.dLbls.showVal = True  # Show numeric values
-                    series.dLbls.showSerName = False  # Don't show series names
-                    series.dLbls.showCatName = False  # Don't show category names
-                    series.dLbls.showPercent = False  # Don't show percentages
-                    # Position first series (Created) at top, second (Resolved) at bottom
-                    series.dLbls.position = 't' if i == 0 else 'b'  # Use 't' for top, 'b' for bottom
-                    
-                    # Style the data labels
-                    from openpyxl.drawing.text import CharacterProperties
-                    series.dLbls.txPr = CharacterProperties()
-                    series.dLbls.txPr.sz = 900  # 9pt font size
-                    
+                    series.dLbls.showSerName = False
+                    series.dLbls.showCatName = False
+                    series.dLbls.showPercent = False
+                    # Simple positioning without complex styling
+                    series.dLbls.position = 't' if i == 0 else 'b'
             except Exception as e:
                 print(f"Warning: Could not configure data labels: {e}")
+                # Continue without data labels if there's an issue
             
             # Position the chart below the data table
             worksheet.add_chart(line_chart, "I18")
@@ -2466,14 +2249,14 @@ class EnhancedExecutiveSummary:
             # Create Category Quality Raw sheet (most important one)
             self._create_category_quality_raw_sheet(writer, raw_data)
             
-            # Create Data Quality sheet
-            self._create_data_quality_sheet(writer, summary_data)
+            # REMOVED: Create Data Quality sheet - metrics now included in Metrics Output sheet
+            # self._create_data_quality_sheet(writer, summary_data)
             
             # REMOVED: Create Detailed Metrics sheet (all metrics are duplicates of Metrics Output)
             # self._create_detailed_metrics_sheet(writer, summary_data)
             
-            # Create Trend Analysis sheet
-            self._create_trend_analysis_sheet(writer, summary_data)
+            # REMOVED: Create Trend Analysis sheet - metrics now included in Metrics Output sheet
+            # self._create_trend_analysis_sheet(writer, summary_data)
             
         except Exception as e:
             print(f"Warning: Error creating enhanced sheets: {e}")

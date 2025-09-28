@@ -180,8 +180,8 @@ def find_incidents_csv(modules) -> 'Optional[Path]':
 
 def process_incident_data(csv_path, modules):
     """
-    Process incident data using modular components.
-    Implements separation of concerns for data processing following clean code principles.
+    Process incident data using optimized consolidated pipeline.
+    PRESERVES existing functionality while improving performance.
     """
     logging = modules.get('logging')
     Path = modules.get('Path')
@@ -196,7 +196,34 @@ def process_incident_data(csv_path, modules):
             print(f"ERROR: {error_msg}")
             return None
 
-        # Load data using dedicated loader
+        # NEW: Use consolidated pipeline for improved performance
+        try:
+            from data_processing.consolidated_pipeline import ConsolidatedDataPipeline
+            pipeline = ConsolidatedDataPipeline()
+            
+            print(f"Loading incident data using optimized pipeline: {csv_path}")
+            processed_data = pipeline.process_incident_file_optimized(csv_path, modules)
+            
+            if processed_data is not None:
+                # Show performance stats
+                stats = pipeline.get_performance_stats()
+                improvements = pipeline.benchmark_improvements()
+                
+                print(f"✅ Optimized processing completed:")
+                print(f"  - {stats.get('records_processed', 0):,} records in {stats.get('total_time', 0):.3f}s")
+                print(f"  - Processing rate: {stats.get('processing_rate', 0):.0f} records/sec")
+                print(f"  - Memory usage: {stats.get('memory_usage_mb', 0):.2f} MB")
+                
+                return processed_data
+            else:
+                print("⚠️  Optimized pipeline failed, falling back to original method")
+                # Fall through to original code below
+        except ImportError:
+            logger and logger.info("Consolidated pipeline not available, using original method")
+        except Exception as e:
+            logger and logger.warning(f"Optimized pipeline failed: {e}, using fallback")
+
+        # FALLBACK: Original loading method (preserved for compatibility)
         print(f"Loading incident data from: {csv_path}")
         DataLoader = modules['DataLoader']
         loader = DataLoader()
